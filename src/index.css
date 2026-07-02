@@ -8,13 +8,53 @@
 :root {
   background-color: #080608;
   color: #F5EEF0;
+  color-scheme: dark;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background: #080608;
 }
 
 body {
   margin: 0;
   overflow: hidden;
   font-family: var(--font-sans);
+  background:
+    radial-gradient(circle at top left, rgba(201, 116, 122, 0.08), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(139, 74, 107, 0.1), transparent 26%),
+    #080608;
+  overscroll-behavior: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(201, 116, 122, 0.95);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(201, 116, 122, 0.28);
+  color: #fff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #231820 transparent;
 }
 
 /* Custom Scrollbar */
@@ -34,6 +74,11 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #3A2530;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #231820 transparent;
 }
 
 /* Animations */
@@ -93,4 +138,13 @@ body {
 
 .glw-app-container {
   font-family: var(--font-sans);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

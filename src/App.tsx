@@ -162,7 +162,7 @@ const SignOutOverlay: React.FC<{ onComplete: () => void }> = ({ onComplete }) =>
 // ─── App Shell ──────────────────────────────────────────────────────────────
 const AppShell: React.FC = () => {
   const { user, profile, loading: authLoading, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('executive');
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = useCallback(async () => {
@@ -188,16 +188,34 @@ const AppShell: React.FC = () => {
 
   const renderView = () => {
     switch (activeTab) {
-      case 'overview': return <OverviewView loading={authLoading} onNavigate={setActiveTab} />;
-      case 'analytics': return <AnalyticsView onNavigate={setActiveTab} />;
-      case 'marketing': return <MarketingView onNavigate={setActiveTab} />;
-      case 'products': return <InventoryView onNavigate={setActiveTab} />;
-      case 'customers': return <CustomersView />;
-      case 'automations': return <AutomationsView />;
-      case 'activity': return <ActivityCenter />;
-      case 'ai': return <AIAgentsView />;
-      case 'settings': return <SettingsView />;
-      default: return <OverviewView loading={authLoading} onNavigate={setActiveTab} />;
+      case 'executive':
+      case 'overview':
+        return <OverviewView loading={authLoading} onNavigate={setActiveTab} />;
+      case 'growth':
+      case 'analytics':
+        return <AnalyticsView onNavigate={setActiveTab} />;
+      case 'marketing':
+        return <MarketingView onNavigate={setActiveTab} />;
+      case 'commerce':
+      case 'products':
+        return <InventoryView onNavigate={setActiveTab} />;
+      case 'customers':
+        return <CustomersView />;
+      case 'operations':
+      case 'activity':
+        return <ActivityCenter />;
+      case 'finance':
+        return <AnalyticsView onNavigate={setActiveTab} />;
+      case 'intelligence':
+      case 'ai':
+        return <AIAgentsView />;
+      case 'automation':
+      case 'automations':
+        return <AutomationsView />;
+      case 'settings':
+        return <SettingsView />;
+      default:
+        return <OverviewView loading={authLoading} onNavigate={setActiveTab} />;
     }
   };
 
