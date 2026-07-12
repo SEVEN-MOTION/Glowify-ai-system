@@ -1,225 +1,333 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Bot, Zap, Send, Loader2, ShieldAlert, Cpu, Activity, BrainCircuit } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleGenAI } from '@google/genai';
-import { AGENT_FLEET_LOGS } from '../../utils/neurozenMockData';
-import { AgentFeed } from '../AgentFeed';
+import React, { useEffect, useState } from 'react';
+import { Bot, ShieldAlert, Cpu, Activity, BrainCircuit, CheckCircle2, XCircle, Edit2, ArrowUpRight, Search, Sparkles } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
-// Gemini Integration
-const callGemini = async (prompt: string, apiKey: string): Promise<string> => {
-  if (!apiKey) {
-    throw new Error("No API key");
-  }
-  
-  const genAI = new GoogleGenAI(apiKey);
-  
-  const systemContext = `You are the Glowify AI Fleet Operator for a beauty eCommerce brand called GLOWIFY. 
-  You manage inventory intelligence, pricing decisions, and marketing automation.
-  Current store data: Products include skincare serums ($89), moisturizers ($65), cleansers ($45), treatments ($120).
-  Total revenue this month: $142,840. Top channel: Direct (85% share). ROAS: 4.2x.
-  Respond concisely in 2-3 sentences. Be specific and actionable like a real ops AI.`;
-  
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-  
-  const result = await model.generateContent(`${systemContext}\n\nOperator query: ${prompt}`);
-  const response = await result.response;
-  return response.text() ?? '';
+type Agent = {
+  id: string;
+  name: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  task: string;
+  status: 'Active' | 'Paused' | 'Idle';
+  successRate: number;
+  lastActivity: string;
 };
 
-interface Message {
-  role: 'user' | 'ai';
-  text: string;
-}
+type ActionItem = {
+  id: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'completed' | 'failed';
+  successRate: number;
+  revenueImpact: number;
+  confidence: number;
+  agent: string;
+  createdAt: string;
+};
 
-export const AIAgentsView: React.FC = () => {
+type TimelineEvent = {
+  id: string;
+  time: string;
+  title: string;
+  detail: string;
+  revenueImpact: number;
+  confidence: number;
+};
+
+const AGENTS: Agent[] = [
+  { id: 'agent-1', name: 'Inventory Sentinel', icon: ShieldAlert, task: 'Monitoring stock risk', status: 'Active', successRate: 92, lastActivity: '2m ago' },
+  { id: 'agent-2', name: 'Pricing Optimizer', icon: Cpu, task: 'Analyzing margin', status: 'Active', successRate: 84, lastActivity: '7m ago' },
+  { id: 'agent-3', name: 'SEO Architect', icon: Activity, task: 'Scanning search demand', status: 'Active', successRate: 78, lastActivity: '12m ago' },
+  { id: 'agent-4', name: 'Creative Core', icon: BrainCircuit, task: 'Drafting campaign hooks', status: 'Active', successRate: 89, lastActivity: '4m ago' },
+];
+
+const INITIAL_ACTIONS: ActionItem[] = [
+  { id: 'action-1', title: 'Restock Vitamin C Serum', description: 'Reorder top SKU inventory to preserve momentum.', status: 'pending', successRate: 92, revenueImpact: 1200, confidence: 94, agent: 'Inventory Sentinel', createdAt: '09:18 AM' },
+  { id: 'action-2', title: 'Increase Retinol Cream price', description: 'Raise price by 5% while monitoring conversion.', status: 'completed', successRate: 86, revenueImpact: 860, confidence: 78, agent: 'Pricing Optimizer', createdAt: '08:40 AM' },
+  { id: 'action-3', title: 'SEO landing page update', description: 'Add long-tail keyword sections to boost organic traffic.', status: 'failed', successRate: 62, revenueImpact: 430, confidence: 68, agent: 'SEO Architect', createdAt: '07:52 AM' },
+];
+
+const TIMELINE_EVENTS: TimelineEvent[] = [
+  { id: 'event-1', time: '09:20 AM', title: 'Inventory Sentinel queued restock action', detail: 'Vitamin C Serum inventory fell below threshold.', revenueImpact: 1200, confidence: 94 },
+  { id: 'event-2', time: '08:45 AM', title: 'Pricing Optimizer approved margin update', detail: 'Retinol Cream price increased by 5%.', revenueImpact: 860, confidence: 78 },
+  { id: 'event-3', time: '07:30 AM', title: 'SEO Architect flagged content opportunity', detail: 'Create a keyword-rich guide for skin health.', revenueImpact: 430, confidence: 68 },
+];
+
+const confidenceStyle = (confidence: number) => {
+  if (confidence >= 85) return 'bg-emerald-500/10 text-emerald-300';
+  if (confidence >= 70) return 'bg-[#C9747A]/10 text-[#F3CBD0]';
+  return 'bg-amber-500/10 text-amber-300';
+};
+
+const AgentStatusRow: React.FC<{ agent: Agent }> = ({ agent }) => (
+  <div className="grid grid-cols-[1.1fr_1.2fr_0.7fr_0.7fr_1.1fr] gap-4 items-center rounded-3xl border border-[#231820] bg-[#100D10] px-4 py-4 text-sm text-[#BCA8AE]">
+    <div className="flex items-center gap-3">
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#080608] text-[#C9747A]">
+        <agent.icon size={18} />
+      </div>
+      <div>
+        <p className="font-semibold text-[#F5EEF0]">{agent.name}</p>
+        <p className="text-[11px] text-[#6B6B88]">Task: {agent.task}</p>
+      </div>
+    </div>
+    <div className="font-semibold text-[#F5EEF0] truncate">{agent.task}</div>
+    <div>
+      <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${agent.status === 'Active' ? 'bg-emerald-500/10 text-emerald-300' : 'bg-amber-500/10 text-amber-300'}`}>
+        {agent.status}
+      </span>
+    </div>
+    <div className="text-[#F5EEF0]">{agent.successRate}%</div>
+    <div className="text-[#6B6B88]">{agent.lastActivity}</div>
+  </div>
+);
+
+const ActionRow: React.FC<{ action: ActionItem; onSelect: () => void }> = ({ action, onSelect }) => (
+  <button type="button" onClick={onSelect} className="w-full rounded-3xl border border-[#231820] bg-[#0D0D1A] p-4 text-left transition hover:border-[#C9747A]/40">
+    <div className="flex items-start justify-between gap-4">
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-[#F5EEF0] truncate">{action.title}</p>
+        <p className="mt-2 text-[12px] text-[#BCA8AE] truncate">{action.description}</p>
+      </div>
+      <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${confidenceStyle(action.confidence)}`}>{action.confidence}%</span>
+    </div>
+    <div className="mt-4 flex flex-wrap items-center gap-3 text-[11px] text-[#6B6B88]">
+      <span>{action.agent}</span>
+      <span>Impact ${action.revenueImpact.toLocaleString()}</span>
+      <span>{action.createdAt}</span>
+    </div>
+  </button>
+);
+
+const TimelineRow: React.FC<{ event: TimelineEvent }> = ({ event }) => (
+  <div className="rounded-3xl border border-[#231820] bg-[#0D0D1A] p-4 text-sm">
+    <div className="flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.18em] text-[#6B6B88] mb-3">
+      <span>{event.time}</span>
+      <span>Impact ${event.revenueImpact.toLocaleString()}</span>
+    </div>
+    <p className="font-semibold text-[#F5EEF0]">{event.title}</p>
+    <p className="mt-2 text-[12px] text-[#BCA8AE]">{event.detail}</p>
+    <div className="mt-4 flex items-center justify-between text-[11px] text-[#6B6B88]">
+      <span>Confidence</span>
+      <span className={`rounded-full px-3 py-1 ${confidenceStyle(event.confidence)}`}>{event.confidence}%</span>
+    </div>
+  </div>
+);
+
+const AIAgentsView: React.FC = () => {
   const { profile } = useAuth();
-  const [prompt, setPrompt] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', text: 'System initialized. All 4 neural agents are online and monitoring the GLOWIFY ecosystem. How can I assist with operations today?' }
-  ]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const storeName = profile?.storeName || 'Glowify Workspace';
 
-  const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const [actions, setActions] = useState<ActionItem[]>(INITIAL_ACTIONS);
+  const [selectedActionId, setSelectedActionId] = useState<string>(INITIAL_ACTIONS[0]?.id ?? '');
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftTitle, setDraftTitle] = useState('');
+  const [draftDescription, setDraftDescription] = useState('');
+  const [prompt, setPrompt] = useState('');
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping]);
-
-  const handleSend = async (text: string) => {
-    if (!text.trim() || isTyping) return;
-    
-    const userMsg = text.trim();
-    const geminiKey = profile?.geminiApiKey || import.meta.env.VITE_GEMINI_API_KEY;
-
-    setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
-    setPrompt('');
-    setIsTyping(true);
-    setError(null);
-
-    try {
-      if (!geminiKey) {
-        throw new Error("No API key");
-      }
-      const response = await callGemini(userMsg, geminiKey);
-      setMessages(prev => [...prev, { role: 'ai', text: response }]);
-    } catch (err: any) {
-      console.error(err);
-      if (err.message === "No API key") {
-        setError("API Key Missing");
-      } else {
-        setError("AI Service Unavailable");
-      }
-      // Simulated response on error
-      setTimeout(() => {
-        setMessages(prev => [...prev, { 
-          role: 'ai', 
-          text: "I've analyzed the current data stream. Our Inventory-Sentinel reports high velocity on 'Vitamin C Serum', while Pricing-Optimizer has detected a 5% margin opportunity on 'Retinol Cream' based on competitor stockouts. Shall I execute these optimizations?" 
-        }]);
-      }, 1000);
-    } finally {
-      setIsTyping(false);
+    if (!selectedActionId && actions.length > 0) {
+      setSelectedActionId(actions[0].id);
     }
+  }, [actions, selectedActionId]);
+
+  const selectedAction = actions.find((item) => item.id === selectedActionId);
+  const pendingActions = actions.filter((item) => item.status === 'pending');
+  const completedActions = actions.filter((item) => item.status === 'completed');
+  const failedActions = actions.filter((item) => item.status === 'failed');
+
+  const handleApprove = (id: string) => {
+    setActions((items) => items.map((item) => (item.id === id ? { ...item, status: 'completed' } : item)));
   };
 
-  const quickPrompts = [
-    "Stock Alert Status",
-    "Revenue Optimization",
-    "Marketing Insights",
-    "Competitor Watch"
-  ];
+  const handleReject = (id: string) => {
+    setActions((items) => items.map((item) => (item.id === id ? { ...item, status: 'failed' } : item)));
+  };
 
-  const agentStats = [
-    { name: 'Inventory-Sentinel', icon: ShieldAlert, status: 'Active', impact: 92 },
-    { name: 'Pricing-Optimizer', icon: Cpu, status: 'Active', impact: 78 },
-    { name: 'SEO-Architect', icon: Activity, status: 'Active', impact: 65 },
-    { name: 'Neuro-Core', icon: BrainCircuit, status: 'Active', impact: 98 },
-  ];
+  const startEdit = () => {
+    if (!selectedAction) return;
+    setDraftTitle(selectedAction.title);
+    setDraftDescription(selectedAction.description);
+    setIsEditing(true);
+  };
+
+  const saveEdit = () => {
+    if (!selectedAction) return;
+    setActions((items) => items.map((item) => (item.id === selectedAction.id ? { ...item, title: draftTitle, description: draftDescription } : item)));
+    setIsEditing(false);
+  };
+
+  const cancelEdit = () => {
+    setIsEditing(false);
+    setDraftTitle('');
+    setDraftDescription('');
+  };
+
+  const submitPrompt = () => {
+    if (!prompt.trim()) return;
+    const newAction: ActionItem = {
+      id: `action-${Date.now()}`,
+      title: prompt.trim().slice(0, 45),
+      description: `Glowify AI recommendation: ${prompt.trim()}`,
+      status: 'pending',
+      successRate: 82,
+      revenueImpact: 950,
+      confidence: 88,
+      agent: 'Creative Core',
+      createdAt: 'Now',
+    };
+    setActions((items) => [newAction, ...items]);
+    setSelectedActionId(newAction.id);
+    setPrompt('');
+  };
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-black text-[#F5EEF0] tracking-tight">AI Fleet Command</h2>
-          <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/20 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            4 Agents Active
-          </span>
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#8A7A81]">AI Command Center</p>
+          <h1 className="mt-3 text-3xl font-black tracking-[-0.04em] text-[#F5EEF0]">Grow operations for {storeName}</h1>
+          <p className="mt-3 max-w-2xl text-sm text-[#BCA8AE]">Track agent status, approve smart actions, and monitor AI timeline events with revenue and confidence context.</p>
         </div>
-        <button className="px-4 py-2 bg-[#C9747A] hover:bg-[#D4A0A3] text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-[#C9747A]/20">
-          Run Full Fleet Analysis
-        </button>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full sm:w-auto">
+          <div className="rounded-3xl border border-[#231820] bg-[#100D10] p-5 text-sm">
+            <p className="text-[10px] uppercase tracking-[0.24em] text-[#6B6B88]">Live agents</p>
+            <p className="mt-3 text-3xl font-black text-[#F5EEF0]">4</p>
+          </div>
+          <div className="rounded-3xl border border-[#231820] bg-[#100D10] p-5 text-sm">
+            <p className="text-[10px] uppercase tracking-[0.24em] text-[#6B6B88]">Pending actions</p>
+            <p className="mt-3 text-3xl font-black text-[#F5EEF0]">{pendingActions.length}</p>
+          </div>
+          <div className="rounded-3xl border border-[#231820] bg-[#100D10] p-5 text-sm">
+            <p className="text-[10px] uppercase tracking-[0.24em] text-[#6B6B88]">Avg confidence</p>
+            <p className="mt-3 text-3xl font-black text-[#F5EEF0]">{Math.round(actions.reduce((sum, item) => sum + item.confidence, 0) / Math.max(actions.length, 1))}%</p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Feed & Status */}
-        <div className="lg:col-span-2 space-y-8">
-          <AgentFeed logs={AGENT_FLEET_LOGS} />
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {agentStats.map((agent) => (
-              <div key={agent.name} className="bg-[#140F14] border border-[#231820] rounded-2xl p-4 hover:border-[#C9747A]/30 transition-all group">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="p-2 rounded-lg bg-[#080608] text-[#6B5560] group-hover:text-[#C9747A] transition-colors">
-                    <agent.icon size={18} />
-                  </div>
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+      <div className="grid grid-cols-1 xl:grid-cols-[1.45fr_1fr] gap-6">
+        <div className="rounded-3xl border border-[#231820] bg-[#100D10] p-5">
+          <div className="flex items-center justify-between gap-4 mb-5">
+            <div>
+              <p className="text-sm font-semibold text-[#F5EEF0]">Agent Status Board</p>
+              <p className="text-[12px] text-[#6B6B88] mt-1">Agent tasks, success percentages, and latest activity.</p>
+            </div>
+            <button type="button" className="rounded-2xl border border-[#C9747A]/20 bg-[#C9747A]/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F3CBD0]">Refresh</button>
+          </div>
+          <div className="grid grid-cols-[1.1fr_1.2fr_0.7fr_0.7fr_1.1fr] gap-4 px-4 py-3 text-[11px] uppercase tracking-[0.18em] text-[#6B6B88] border-b border-[#231820]">
+            <span>Agent</span>
+            <span>Current task</span>
+            <span>Status</span>
+            <span>Success rate</span>
+            <span>Last activity</span>
+          </div>
+          <div className="space-y-3 mt-3">
+            {AGENTS.map((agent) => (
+              <AgentStatusRow key={agent.id} agent={agent} />
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="rounded-3xl border border-[#231820] bg-[#100D10] p-5">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <p className="text-sm font-semibold text-[#F5EEF0]">Approval Center</p>
+                <p className="text-[12px] text-[#6B6B88] mt-1">Approve, reject, or edit AI-recommended actions.</p>
+              </div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#3B82F6]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#60A5FA]">Review queue</div>
+            </div>
+            {!selectedAction ? (
+              <div className="rounded-3xl border border-dashed border-[#231820] p-8 text-center text-[#6B6B88]">Select an action to review from the queue.</div>
+            ) : isEditing ? (
+              <div className="space-y-4">
+                <label className="block text-[11px] uppercase tracking-[0.18em] text-[#6B6B88]">Action title</label>
+                <input value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} className="w-full rounded-2xl border border-[#231820] bg-[#080608] p-3 text-sm text-[#F5EEF0] focus:outline-none focus:border-[#C9747A]" />
+                <label className="block text-[11px] uppercase tracking-[0.18em] text-[#6B6B88]">Description</label>
+                <textarea value={draftDescription} onChange={(e) => setDraftDescription(e.target.value)} className="w-full rounded-2xl border border-[#231820] bg-[#080608] p-3 text-sm text-[#F5EEF0] focus:outline-none focus:border-[#C9747A]" rows={5} />
+                <div className="flex gap-3">
+                  <button type="button" onClick={saveEdit} className="flex-1 rounded-2xl bg-[#10B981] px-4 py-3 text-sm font-semibold text-white">Save</button>
+                  <button type="button" onClick={cancelEdit} className="flex-1 rounded-2xl border border-[#231820] bg-[#080608] px-4 py-3 text-sm font-semibold text-[#F5EEF0]">Cancel</button>
                 </div>
-                <h4 className="text-[11px] font-black text-[#F5EEF0] uppercase tracking-wider mb-1">{agent.name.split('-')[0]}</h4>
-                <p className="text-[10px] text-[#6B5560] mb-3">Last action: 2m ago</p>
-                <div className="h-1 w-full bg-[#080608] rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${agent.impact}%` }}
-                    className="h-full bg-gradient-to-r from-[#C9747A] to-[#8B4A6B]"
-                  />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-semibold text-[#F5EEF0]">{selectedAction.title}</p>
+                  <p className="mt-2 text-[12px] text-[#BCA8AE]">{selectedAction.description}</p>
+                </div>
+                <div className="rounded-3xl border border-[#231820] bg-[#080608] p-4 text-[11px] text-[#6B6B88]">
+                  <p>Agent: {selectedAction.agent}</p>
+                  <p>Success rate: {selectedAction.successRate}%</p>
+                  <p>Revenue impact: ${selectedAction.revenueImpact.toLocaleString()}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <button type="button" onClick={() => handleApprove(selectedAction.id)} className="rounded-2xl bg-[#10B981] px-4 py-3 text-sm font-semibold text-white">Approve</button>
+                  <button type="button" onClick={() => handleReject(selectedAction.id)} className="rounded-2xl bg-[#EF4444] px-4 py-3 text-sm font-semibold text-white">Reject</button>
+                </div>
+                <button type="button" onClick={startEdit} className="w-full rounded-2xl border border-[#231820] bg-[#080608] px-4 py-3 text-sm font-semibold text-[#F5EEF0] inline-flex items-center justify-center gap-2"><Edit2 size={16} /> Edit action</button>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-3xl border border-[#231820] bg-[#100D10] p-5">
+            <p className="text-sm font-semibold text-[#F5EEF0] mb-3">Quick Prompt</p>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Ask glowify to grow your store...."
+              className="w-full rounded-3xl border border-[#231820] bg-[#080608] p-4 text-sm text-[#F5EEF0] focus:outline-none focus:border-[#C9747A]"
+              rows={5}
+            />
+            <button type="button" onClick={submitPrompt} className="mt-4 w-full rounded-2xl bg-[#C9747A] px-4 py-3 text-sm font-semibold text-white">Submit prompt</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.95fr] gap-6">
+        <div className="rounded-3xl border border-[#231820] bg-[#100D10] p-5">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <p className="text-sm font-semibold text-[#F5EEF0]">Action Queue</p>
+              <p className="text-[12px] text-[#6B6B88] mt-1">Pending, completed, and failed actions in one place.</p>
+            </div>
+            <span className="rounded-full bg-[#C9747A]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#F3CBD0]">Mock only</span>
+          </div>
+          <div className="space-y-4">
+            {[
+              { title: 'Pending', actions: pendingActions },
+              { title: 'Completed', actions: completedActions },
+              { title: 'Failed', actions: failedActions },
+            ].map((section) => (
+              <div key={section.title} className="rounded-3xl border border-[#231820] bg-[#080608] p-4">
+                <p className="text-[12px] uppercase tracking-[0.18em] text-[#6B6B88] mb-3">{section.title}</p>
+                <div className="space-y-3">
+                  {section.actions.length > 0 ? section.actions.map((action) => (
+                    <ActionRow key={action.id} action={action} onSelect={() => setSelectedActionId(action.id)} />
+                  )) : (
+                    <div className="rounded-3xl border border-dashed border-[#231820] p-6 text-center text-[#6B6B88]">No actions.</div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Right Column: Command Console */}
-        <div className="lg:col-span-1 flex flex-col bg-[#140F14] border border-[#231820] rounded-3xl overflow-hidden h-[650px] shadow-2xl">
-          <div className="p-6 border-b border-[#231820] bg-[#100D10]/50">
-            <h3 className="text-sm font-black text-[#F5EEF0] uppercase tracking-widest flex items-center gap-2">
-              <Bot size={16} className="text-[#C9747A]" />
-              AI Command Console
-            </h3>
-            <p className="text-[11px] text-[#6B5560] mt-1">Query the neural fleet directly</p>
+        <div className="rounded-3xl border border-[#231820] bg-[#100D10] p-5">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <p className="text-sm font-semibold text-[#F5EEF0]">AI Timeline</p>
+              <p className="text-[12px] text-[#6B6B88] mt-1">Chronological actions with revenue impact and confidence.</p>
+            </div>
+            <span className="rounded-full bg-[#C9747A]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#F3CBD0]">Revenue aware</span>
           </div>
-
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-            {error === "API Key Missing" && (
-              <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
-                <p className="text-[11px] text-amber-400 leading-relaxed">
-                  ⚠️ **Connect your Gemini API key** in settings to enable live AI analysis. Showing simulated responses below.
-                </p>
-              </div>
-            )}
-
-            {messages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] p-4 rounded-2xl text-[13px] leading-relaxed ${
-                  msg.role === 'user' 
-                    ? 'bg-[#C9747A] text-white rounded-tr-none' 
-                    : 'bg-[#080608] text-[#B09AA0] border border-[#231820] rounded-tl-none font-mono'
-                }`}>
-                  {msg.text}
-                </div>
-              </div>
+          <div className="space-y-4">
+            {TIMELINE_EVENTS.map((event) => (
+              <TimelineRow key={event.id} event={event} />
             ))}
-            
-            {isTyping && (
-              <div className="flex justify-start">
-                <div className="bg-[#080608] border border-[#231820] p-4 rounded-2xl rounded-tl-none flex gap-1">
-                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1 }} className="w-1.5 h-1.5 rounded-full bg-[#C9747A]" />
-                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1.5 h-1.5 rounded-full bg-[#C9747A]" />
-                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1.5 h-1.5 rounded-full bg-[#C9747A]" />
-                </div>
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-
-          <div className="p-6 border-t border-[#231820] bg-[#100D10]/50 space-y-4">
-            <div className="flex flex-wrap gap-2">
-              {quickPrompts.map(p => (
-                <button 
-                  key={p}
-                  onClick={() => handleSend(p)}
-                  className="px-3 py-1.5 rounded-lg bg-[#080608] border border-[#231820] text-[10px] font-bold text-[#6B5560] hover:text-[#C9747A] hover:border-[#C9747A]/50 transition-all"
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-            
-            <div className="relative">
-              <input 
-                type="text" 
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend(prompt)}
-                placeholder="Ask the fleet operator..."
-                className="w-full bg-[#080608] border border-[#231820] rounded-xl pl-4 pr-12 py-3 text-sm text-[#F5EEF0] focus:outline-none focus:border-[#C9747A] transition-all"
-              />
-              <button 
-                onClick={() => handleSend(prompt)}
-                disabled={isTyping}
-                className="absolute right-2 top-2 w-9 h-9 rounded-lg bg-[#C9747A] flex items-center justify-center text-white hover:bg-[#D4A0A3] transition-all disabled:opacity-50"
-              >
-                {isTyping ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-              </button>
-            </div>
-            <p className="text-center text-[9px] text-[#3D2B32] uppercase tracking-widest font-bold">Powered by Gemini 1.5 Flash</p>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+export default AIAgentsView;
