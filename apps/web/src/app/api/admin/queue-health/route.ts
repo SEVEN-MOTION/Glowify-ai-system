@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { getQueueHealth } from '@/packages/worker/queue/ai-queue'
+import { requireAdmin } from '@/lib/server-auth'
 
-export async function GET() {
+export async function GET(req: Request) {
+  const auth = await requireAdmin(req)
+  if ('response' in auth) return auth.response
+
   try {
     const health = await getQueueHealth()
     const totalFailed  = Object.values(health).reduce((acc: number, q: any) => acc + (q.failed  || 0), 0)
