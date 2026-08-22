@@ -1,0 +1,34 @@
+name: Fix AI agents export
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix missing named export
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/components/views/AIAgentsView.tsx')
+          text = path.read_text()
+          old = 'const AIAgentsView: React.FC = () => {'
+          new = 'export const AIAgentsView: React.FC = () => {'
+          if old not in text:
+              raise SystemExit('Expected declaration not found; refusing to modify file.')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit fix and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/views/AIAgentsView.tsx
+          git rm .github/workflows/fix-ai-agents-export.yml
+          git commit -m "fix: export AI agents view"
+          git push
