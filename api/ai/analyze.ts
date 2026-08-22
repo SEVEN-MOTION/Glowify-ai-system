@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { adminAuth, db } from '../../packages/worker/firebase-admin.js';
+import { getAdminServices } from '../../packages/worker/firebase-admin.js';
 
 const FOUNDER_EMAIL = 'glowifybabystores@gmail.com';
 
@@ -29,6 +29,14 @@ async function requireStoreAccess(req: ApiRequest, storeId: string) {
   const token = getBearerToken(req);
   if (!token) return { status: 401 as const, error: 'Authentication required' };
   if (!storeId) return { status: 400 as const, error: 'storeId is required' };
+
+  let adminAuth;
+  let db;
+  try {
+    ({ adminAuth, db } = getAdminServices());
+  } catch {
+    return { status: 503 as const, error: 'Authentication service is not configured' };
+  }
 
   let decodedToken;
   try {
