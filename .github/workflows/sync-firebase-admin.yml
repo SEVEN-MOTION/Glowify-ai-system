@@ -1,0 +1,46 @@
+name: Sync Firebase Admin dependency
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Add Firebase Admin and synchronize lockfile
+        run: pnpm add firebase-admin@13.10.0 --save --lockfile-only
+
+      - name: Commit synchronized dependency state
+        run: |
+          if git diff --quiet; then
+            echo "Dependency state already synchronized."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json pnpm-lock.yaml
+          git commit -m "build: synchronize firebase-admin dependency lockfile"
+          git push
