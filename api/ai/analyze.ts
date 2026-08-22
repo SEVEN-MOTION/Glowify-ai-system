@@ -1,20 +1,31 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
 import { adminAuth, db } from '../../packages/worker/firebase-admin';
 
 const FOUNDER_EMAIL = 'glowifybabystores@gmail.com';
 
-function json(res: VercelResponse, status: number, body: unknown) {
+type ApiRequest = {
+  method?: string;
+  headers: Record<string, string | string[] | undefined>;
+  body?: unknown;
+};
+
+type ApiResponse = {
+  status: (code: number) => ApiResponse;
+  json: (body: unknown) => unknown;
+  setHeader: (name: string, value: string) => void;
+};
+
+function json(res: ApiResponse, status: number, body: unknown) {
   return res.status(status).json(body);
 }
 
-function getBearerToken(req: VercelRequest): string | null {
+function getBearerToken(req: ApiRequest): string | null {
   const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) return null;
+  if (Array.isArray(header) || !header?.startsWith('Bearer ')) return null;
   return header.slice(7).trim() || null;
 }
 
-async function requireStoreAccess(req: VercelRequest, storeId: string) {
+async function requireStoreAccess(req: ApiRequest, storeId: string) {
   const token = getBearerToken(req);
   if (!token) return { status: 401 as const, error: 'Authentication required' };
   if (!storeId) return { status: 400 as const, error: 'storeId is required' };
@@ -45,7 +56,7 @@ async function requireStoreAccess(req: VercelRequest, storeId: string) {
   return { decodedToken };
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return json(res, 405, { error: 'Method not allowed' });
