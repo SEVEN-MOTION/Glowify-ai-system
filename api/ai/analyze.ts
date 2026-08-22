@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { adminAuth, db } from '../../packages/worker/firebase-admin';
+import { adminAuth, db } from '../../packages/worker/firebase-admin.js';
 
 const FOUNDER_EMAIL = 'glowifybabystores@gmail.com';
 
