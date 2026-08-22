@@ -1,8 +1,48 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
+import { adminAuth, db } from '../../packages/worker/firebase-admin';
+
+const FOUNDER_EMAIL = 'glowifybabystores@gmail.com';
 
 function json(res: VercelResponse, status: number, body: unknown) {
   return res.status(status).json(body);
+}
+
+function getBearerToken(req: VercelRequest): string | null {
+  const header = req.headers.authorization;
+  if (!header?.startsWith('Bearer ')) return null;
+  return header.slice(7).trim() || null;
+}
+
+async function requireStoreAccess(req: VercelRequest, storeId: string) {
+  const token = getBearerToken(req);
+  if (!token) return { status: 401 as const, error: 'Authentication required' };
+  if (!storeId) return { status: 400 as const, error: 'storeId is required' };
+
+  let decodedToken;
+  try {
+    decodedToken = await adminAuth.verifyIdToken(token);
+  } catch {
+    return { status: 401 as const, error: 'Authentication required' };
+  }
+
+  if (decodedToken.email === FOUNDER_EMAIL) {
+    return { decodedToken };
+  }
+
+  const store = await db.collection('stores').doc(storeId).get();
+  if (!store.exists) {
+    return { status: 404 as const, error: 'Store not found' };
+  }
+
+  const data = store.data() ?? {};
+  const ownerUid = data.owner_uid ?? data.ownerUid ?? data.user_id ?? data.userId;
+
+  if (ownerUid !== decodedToken.uid) {
+    return { status: 403 as const, error: 'Forbidden' };
+  }
+
+  return { decodedToken };
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -26,31 +66,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return json(res, 400, { error: 'Request body must be an object' });
   }
 
-  const { eventData } = body as { eventData?: unknown };
+  const { storeId, eventData } = body as { storeId?: string; eventData?: unknown };
   if (!eventData) {
     return json(res, 400, { error: 'eventData is required' });
   }
 
+  const auth = await requireStoreAccess(req, storeId ?? '');
+  if ('status' in auth) {
+    return json(res, auth.status, { error: auth.error });
+  }
+
   try {
+    const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const response = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            {
-              text: `You are Glowify AI, an assistant for a beauty and commerce SaaS platform. Analyze the supplied business event data and return concise, actionable insights for the store operator. Do not invent facts. Return valid JSON with keys: summary, insights, recommendedActions. Event data: ${JSON.stringify(eventData)}`,
-            },
-          ],
-        },
-      ],
+      model,
+      contents: `You are Glowify AI, an assistant for a beauty and commerce SaaS platform. Analyze the supplied business event data and return concise, actionable insights for the store operator. Do not invent facts. Return valid JSON with keys: summary, insights, recommendedActions. Event data: ${JSON.stringify(eventData)}`,
     });
 
     return json(res, 200, {
       success: true,
+      storeId,
       analysis: response.text ?? '',
-      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+      model,
     });
   } catch (error) {
     console.error('Glowify AI analysis failed', error);
