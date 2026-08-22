@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { db } from '@/lib/firebase-admin';
+import { requireStoreAccess } from '@/lib/server-auth';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 export async function POST(req: Request) {
   try {
     const { storeId, eventData } = await req.json();
+    const auth = await requireStoreAccess(req, storeId);
+    if ('response' in auth) return auth.response;
 
     const model = ai.models.generateContent({
       model: 'gemini-2.0-flash',
@@ -30,7 +33,7 @@ export async function POST(req: Request) {
     const result = await model.generateContent(JSON.stringify(eventData));
     const analysis = JSON.parse(result.text());
 
-    // Append telemetry to Firestore
+    // Append telemetry to Firestore only after tenant authorization succeeds.
     await db.collection('stores')
       .doc(storeId)
       .collection('agent_telemetry')
