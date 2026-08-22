@@ -43,7 +43,7 @@ export async function calculateAttribution(
 ) {
   const timeDiffHours = (order.createdAt.getTime() - actionTimestamp.getTime()) / (1000 * 60 * 60);
   
-  let window = null;
+  let window: '24h' | '72h' | '7d' | null = null;
   let confidence = 0.0;
 
   if (timeDiffHours <= 24) {

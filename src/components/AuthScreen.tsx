@@ -8,10 +8,10 @@ import { TechBackground } from './CommonUI';
 type Mode = 'login' | 'signup' | 'reset';
 
 interface AuthScreenProps {
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess = () => {} }) => {
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

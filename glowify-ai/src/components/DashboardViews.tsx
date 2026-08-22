@@ -14,7 +14,7 @@ const CATEGORY_DATA = [
   { name: 'Treatments', value: 15000, color: '#F59E0B' },
 ];
 
-const ActivityItem: React.FC<{ item: any }> = ({ item }) => (
+const ActivityItem: any = ({ item }) => (
   <div className="flex items-center p-3 hover:bg-white/3 rounded-xl transition-colors">
     <div style={{
       width:'36px', height:'36px', borderRadius:'10px', flexShrink:0,
@@ -39,7 +39,7 @@ const ActivityItem: React.FC<{ item: any }> = ({ item }) => (
   </div>
 );
 
-export const OverviewView: React.FC<{ loading: boolean }> = ({ loading }) => (
+export const OverviewView: any = ({ loading }) => (
   <div className="space-y-8">
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <MetricCard label="Total Revenue" value="$142,840" change="+12.4%" trend="up" loading={loading} />
@@ -113,7 +113,7 @@ export const OverviewView: React.FC<{ loading: boolean }> = ({ loading }) => (
   </div>
 );
 
-export const AnalyticsView: React.FC<{ loading: boolean }> = ({ loading }) => (
+export const AnalyticsView: any = ({ loading }) => (
   <div className="space-y-8">
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <Card className="min-h-[400px]">

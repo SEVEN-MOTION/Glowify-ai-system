@@ -1,4 +1,4 @@
-import type { ExtensionContract } from ./extension
+import type { ExtensionContract } from './extension'
 
 export interface ExtensionService {
   readonly register: (extension: ExtensionContract) => Promise<void>

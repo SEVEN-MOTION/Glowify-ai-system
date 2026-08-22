@@ -3,7 +3,7 @@ export class ExtensionContractError extends Error {
 
   constructor(code: string, message: string) {
     super(message)
-    this.name = ExtensionContractError
+    this.name = 'ExtensionContractError'
     this.code = code
   }
 }

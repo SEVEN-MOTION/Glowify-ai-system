@@ -1,4 +1,4 @@
-import type { SemVerRange } from ./types
+import type { SemVerRange } from './types'
 
 export interface DependencyDeclaration {
   readonly name: string

@@ -1,4 +1,4 @@
-import type { SemVerRange } from ./types
+import type { SemVerRange } from './types'
 
 export type VersionConstraint = SemVerRange
 

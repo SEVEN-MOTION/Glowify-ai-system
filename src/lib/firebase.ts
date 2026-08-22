@@ -6,7 +6,11 @@ import {
   User,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
+  sendPasswordResetEmail,
+  updateProfile,
   setPersistence,
   browserLocalPersistence
 } from 'firebase/auth';
@@ -15,7 +19,6 @@ import {
   doc,
   getDoc,
   setDoc,
-  updateDoc,
   serverTimestamp,
   collection,
   query,
@@ -26,14 +29,43 @@ import {
   Unsubscribe
 } from 'firebase/firestore';
 
+const firebaseEnv = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+};
+
+const requiredFirebaseConfig = [
+  ['VITE_FIREBASE_API_KEY', firebaseEnv.apiKey],
+  ['VITE_FIREBASE_AUTH_DOMAIN', firebaseEnv.authDomain],
+  ['VITE_FIREBASE_PROJECT_ID', firebaseEnv.projectId],
+  ['VITE_FIREBASE_STORAGE_BUCKET', firebaseEnv.storageBucket],
+  ['VITE_FIREBASE_MESSAGING_SENDER_ID', firebaseEnv.messagingSenderId],
+  ['VITE_FIREBASE_APP_ID', firebaseEnv.appId],
+] as const;
+
+const missingFirebaseConfig = requiredFirebaseConfig
+  .filter(([, value]) => !value)
+  .map(([name]) => name);
+
+if (missingFirebaseConfig.length > 0) {
+  throw new Error(
+    `Glowify Firebase configuration is incomplete. Missing: ${missingFirebaseConfig.join(', ')}`
+  );
+}
+
 const firebaseConfig = {
-  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCJqT-DKaEyuMGqp-Iyx9XFAjQdimswS90",
-  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "glowify-ai-system.firebaseapp.com",
-  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID || "glowify-ai-system",
-  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "glowify-ai-system.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "507485872156",
-  appId:             import.meta.env.VITE_FIREBASE_APP_ID || "1:507485872156:web:fb8782bd039a71a14e3fd9",
-  measurementId:     import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-648EKGCVB4"
+  apiKey: firebaseEnv.apiKey,
+  authDomain: firebaseEnv.authDomain,
+  projectId: firebaseEnv.projectId,
+  storageBucket: firebaseEnv.storageBucket,
+  messagingSenderId: firebaseEnv.messagingSenderId,
+  appId: firebaseEnv.appId,
+  ...(firebaseEnv.measurementId ? { measurementId: firebaseEnv.measurementId } : {}),
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
@@ -46,25 +78,80 @@ setPersistence(auth, browserLocalPersistence).catch(err => {
 
 export const googleProvider = new GoogleAuthProvider();
 
+const parseAuthError = (code: string): string => {
+  const map: Record<string, string> = {
+    'auth/user-not-found':         'No account found with this email.',
+    'auth/wrong-password':         'Incorrect password. Please try again.',
+    'auth/invalid-credential':     'Invalid email or password.',
+    'auth/invalid-email':          'Please enter a valid email address.',
+    'auth/email-already-in-use':   'An account with this email already exists.',
+    'auth/weak-password':          'Password must be at least 6 characters.',
+    'auth/popup-closed-by-user':   'Sign-in popup closed. Please try again.',
+    'auth/popup-blocked':          'Popup blocked. Allow popups for this site.',
+    'auth/network-request-failed': 'Network error. Check your connection.',
+    'auth/too-many-requests':      'Too many attempts. Please wait and try again.',
+    'auth/operation-not-allowed':  'This sign-in method is not enabled in Firebase Console.',
+    'auth/cancelled-popup-request':'Sign-in cancelled. Please try again.',
+  }
+  return map[code] || `Error (${code}). Please try again.`
+}
+
 export const firebaseAuth = {
+  signInWithEmail: async (email: string, password: string) => {
+    try {
+      if (!auth) throw new Error('Firebase auth not initialized')
+      const result = await signInWithEmailAndPassword(auth, email, password)
+      return { user: result.user, error: null }
+    } catch (err: any) {
+      return { user: null, error: parseAuthError(err.code) }
+    }
+  },
+
+  signUpWithEmail: async (email: string, password: string, displayName?: string, storeName?: string) => {
+    try {
+      if (!auth) throw new Error('Firebase auth not initialized')
+      const result = await createUserWithEmailAndPassword(auth, email, password)
+      if (displayName) await updateProfile(result.user, { displayName })
+      await firestoreHelpers.createUserProfile(result.user, { displayName, storeName })
+      await firestoreHelpers.seedMockData(result.user.uid)
+      return { user: result.user, error: null }
+    } catch (err: any) {
+      return { user: null, error: parseAuthError(err.code) }
+    }
+  },
+
   signInWithGoogle: async () => {
-    if (!auth) throw new Error("Firebase Auth not initialized");
-    return signInWithPopup(auth, googleProvider);
+    try {
+      if (!auth) throw new Error('Firebase Auth not initialized')
+      const result = await signInWithPopup(auth, googleProvider)
+      return { user: result.user, error: null }
+    } catch (err: any) {
+      return { user: null, error: parseAuthError(err.code) }
+    }
   },
 
   signOut: async () => {
-    if (!auth) throw new Error("Firebase Auth not initialized");
-    return firebaseSignOut(auth);
+    if (!auth) throw new Error('Firebase Auth not initialized')
+    return firebaseSignOut(auth)
+  },
+
+  resetPassword: async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email)
+      return { error: null }
+    } catch (err: any) {
+      return { error: parseAuthError(err.code) }
+    }
   },
 
   onAuthStateChanged: (callback: (user: User | null) => void) => {
     if (!auth) {
-      setTimeout(() => callback(null), 0);
-      return () => {};
+      setTimeout(() => callback(null), 0)
+      return () => {}
     }
-    return onAuthStateChanged(auth, callback);
+    return onAuthStateChanged(auth, callback)
   },
-};
+}
 
 export const firestoreHelpers = {
   profileExists: async (uid: string) => {
@@ -117,6 +204,10 @@ export const firestoreHelpers = {
     }
   },
 
+  seedMockData: async (_uid: string) => {
+    return;
+  },
+
   // Subscribe to real-time telemetry/logs
   subscribeToLogs: (uid: string, callback: (logs: any[]) => void): Unsubscribe => {
     if (!db) {
@@ -163,38 +254,4 @@ export const firestoreHelpers = {
       callback([]);
     });
   },
-
-  // Update agent status
-  updateAgentStatus: async (uid: string, agentId: string, status: 'active' | 'paused') => {
-    if (!db) return;
-    try {
-      await updateDoc(doc(db, 'users', uid, 'agents', agentId), {
-        status,
-        updatedAt: serverTimestamp()
-      });
-    } catch (err) {
-      console.error('Error updating agent status:', err);
-    }
-  },
-
-  // Get integrations from user profile
-  getIntegrations: async (uid: string) => {
-    if (!db) return null;
-    try {
-      const snap = await getDoc(doc(db, 'users', uid));
-      if (snap.exists()) {
-        const data = snap.data();
-        return {
-          shopifyApiKey: data.shopifyApiKey || '',
-          shopifyStoreDomain: data.shopifyStoreDomain || '',
-          klaviyoApiKey: data.klaviyoApiKey || '',
-          geminiApiKey: data.geminiApiKey || ''
-        };
-      }
-      return null;
-    } catch (err) {
-      console.error('Error getting integrations:', err);
-      return null;
-    }
-  }
 };

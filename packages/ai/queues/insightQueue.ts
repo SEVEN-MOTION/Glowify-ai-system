@@ -2,7 +2,7 @@
 import { Queue, Worker } from 'bullmq';
 import { analyzeBusinessData } from '../agents/analyzer';
 import { executeAutomation } from '../actions/executor';
-import { logAIDecision, logExecution } from '../services/observability';
+import { logger } from '../services/observability';
 import { prisma } from '../../database/client';
 
 export const insightQueue = new Queue('insight-generation', {
@@ -14,7 +14,7 @@ export const worker = new Worker('insight-generation', async job => {
 
   // 1. AI Analysis with learning context
   const insights = await analyzeBusinessData(tenantId, eventData);
-  await logAIDecision(tenantId, 'AI_INSIGHT_GENERATED', insights, 'SUCCESS', job.id?.toString());
+  logger.info('ai.analysis', 'AI insights generated', { tenantId, jobId: job.id?.toString(), metadata: { count: insights.length, status: 'SUCCESS' } });
 
   // 2. Persist & Trigger Actions
   for (const insight of insights) {
@@ -33,7 +33,7 @@ export const worker = new Worker('insight-generation', async job => {
         }
       });
     } catch (error: any) {
-      await logExecution(tenantId, insight.automationAction.type, { error: error.message }, 'FAILED', job.id?.toString());
+      logger.error('ai.execution', 'Execution failed', error as Error, { tenantId, jobId: job.id?.toString(), metadata: { actionType: insight.automationAction.type } });
     }
   }
 }, { connection: { host: 'localhost', port: 6379 } });

@@ -1,4 +1,5 @@
-import type { AuthorizationContext, AccessEffect, PolicyId, Scope } from './types'
+import type { AuthorizationContext, AccessEffect, PolicyId } from './types'
+import type { Scope } from './scope'
 
 export interface Policy {
   readonly policyId: PolicyId

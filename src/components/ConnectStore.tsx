@@ -8,7 +8,7 @@ interface ConnectStoreProps {
   description?: string;
 }
 
-export const ConnectStore: React.FC<ConnectStoreProps> = ({ 
+export const ConnectStore: React.FC<ConnectStoreProps> = ({
   onConnect, 
   title = "Connect Your Store", 
   description = "Connect your Shopify store to unlock real-time analytics, AI insights, and automated inventory management."

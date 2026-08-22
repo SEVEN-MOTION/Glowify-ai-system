@@ -6,7 +6,7 @@ interface AgentFeedProps {
   loading?: boolean;
 }
 
-export const AgentFeed: React.FC<AgentFeedProps> = ({ logs, loading }) => {
+export const AgentFeed: any = ({ logs, loading }) => {
   return (
     <div className="bg-neutral-950/80 border border-white/5 rounded-2xl overflow-hidden flex flex-col h-[500px]">
       <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between bg-neutral-900/20">
@@ -49,7 +49,7 @@ export const AgentFeed: React.FC<AgentFeedProps> = ({ logs, loading }) => {
                 {log.reasoning}
               </p>
               <p className="text-white/90">
-                <span className="text-neutral-500">>>></span> {log.action}
+                <span className="text-neutral-500">&gt;&gt;&gt;</span> {log.action}
               </p>
             </div>
           ))

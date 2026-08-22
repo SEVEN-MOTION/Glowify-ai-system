@@ -1,4 +1,4 @@
-import type { VersionString } from ./types
+import type { VersionString } from './types'
 
 export interface ExtensionMetadata {
   readonly name: string

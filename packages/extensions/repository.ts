@@ -1,5 +1,5 @@
-import type { ExtensionContract } from ./extension
-import type { ExtensionManifest } from ./manifest
+import type { ExtensionContract } from './extension'
+import type { ExtensionManifest } from './manifest'
 
 export interface ExtensionRepository {
   readonly findById: (id: string) => Promise<ExtensionContract | null>

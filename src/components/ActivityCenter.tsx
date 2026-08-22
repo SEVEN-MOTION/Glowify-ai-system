@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Download, Calendar, User, Zap, Package, Users, Settings, Shield } from 'lucide-react';
+import { Search, Download, Calendar, User, Zap, Package, Users, Settings, LucideIcon, Shield } from 'lucide-react';
 
 interface ActivityLog {
   id: string;

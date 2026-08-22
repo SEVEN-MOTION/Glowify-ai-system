@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { logger } from '../../../../packages/ai/services/observability'
+import { logger } from '@/packages/ai/services/observability'
 
 export async function GET() {
   return NextResponse.json({

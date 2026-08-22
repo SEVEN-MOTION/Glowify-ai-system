@@ -49,7 +49,7 @@ interface CardHeaderProps {
   className?: string;
 }
 
-export const CardHeader: React.FC<CardHeaderProps> = ({ children, className = "" }) => (
+export const CardHeader: any = ({ children, className = "" }) => (
   <h3 className={`text-white font-semibold tracking-tight ${className}`}>
     {children}
   </h3>
@@ -60,7 +60,7 @@ interface HelperTextProps {
   className?: string;
 }
 
-export const HelperText: React.FC<HelperTextProps> = ({ children, className = "" }) => (
+export const HelperText: any = ({ children, className = "" }) => (
   <p className={`text-[#6B6B88] text-sm ${className}`}>
     {children}
   </p>

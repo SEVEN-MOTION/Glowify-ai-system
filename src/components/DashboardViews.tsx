@@ -1,6 +1,6 @@
 // src/components/DashboardViews.tsx
-import React, { useState, useCallback } from 'react';
-import { Package, Mail, AlertCircle, Zap, TrendingUp, TrendingDown, ArrowRight, X, Clock, Bot, Store, Sparkles, MessageSquare } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Package, Mail, AlertCircle, Zap, TrendingUp, TrendingDown, ArrowRight, X, Clock, Bot, Store, Sparkles, MessageSquare, FileText, Check, Loader2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, YAxis } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from './CommonUI';
@@ -170,12 +170,12 @@ const LiveLogsTerminal: React.FC = () => (
 // ─── AI Drafts Widget ────────────────────────────────────────────────────────────
 const DraftsWidget: React.FC = () => {
   const { user } = useAuth();
-  const [drafts, setDrafts] = React.useState<Draft[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [generatingId, setGeneratingId] = React.useState<string | null>(null);
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
 
   // Fetch drafts on mount
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       loadDrafts();
     }

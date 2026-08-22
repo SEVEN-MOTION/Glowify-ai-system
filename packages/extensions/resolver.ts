@@ -1,5 +1,5 @@
-import type { DependencyDeclaration } from ./dependency
-import type { VersionConstraint } from ./version
+import type { DependencyDeclaration } from './dependency'
+import type { VersionConstraint } from './version'
 
 export interface ResolutionRequest {
   readonly dependency: DependencyDeclaration

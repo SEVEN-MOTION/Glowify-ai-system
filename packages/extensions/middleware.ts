@@ -1,4 +1,4 @@
-import type { HookDescriptor } from ./hook
+import type { HookDescriptor } from './hook'
 
 export interface MiddlewareContract {
   readonly name: string

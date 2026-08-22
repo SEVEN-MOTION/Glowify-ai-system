@@ -1,7 +1,7 @@
-import type { CapabilityDescriptor } from ./capability
-import type { ExtensionManifest } from ./manifest
-import type { ExtensionMetadata } from ./metadata
-import type { DependencyDeclaration } from ./dependency
+import type { CapabilityDescriptor } from './capability'
+import type { ExtensionManifest } from './manifest'
+import type { ExtensionMetadata } from './metadata'
+import type { DependencyDeclaration } from './dependency'
 
 export interface ExtensionContract {
   readonly id: string

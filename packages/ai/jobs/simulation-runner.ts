@@ -58,5 +58,3 @@ export async function runSimulation(tenantId: string) {
   console.log("SYSTEM HEALTH REPORT:", report);
   return report;
 }
-
-}

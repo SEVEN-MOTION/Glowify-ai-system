@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: any) {
   try {
     // Verify webhook signature (Shopify sends X-Shopify-Hmac-Sha256 header)
     const hmacHeader = request.headers.get('x-shopify-hmac-sha256');

@@ -1,10 +1,10 @@
 export enum ExtensionLifecycleState {
-  Discovered = discovered,
-  Registered = registered,
-  Installed = installed,
-  Activated = activated,
-  Deactivated = deactivated,
-  Removed = removed,
+  Discovered = 'discovered',
+  Registered = 'registered',
+  Installed = 'installed',
+  Activated = 'activated',
+  Deactivated = 'deactivated',
+  Removed = 'removed',
 }
 
 export interface LifecycleTransition {

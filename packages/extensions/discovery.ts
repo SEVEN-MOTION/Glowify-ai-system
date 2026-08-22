@@ -1,4 +1,4 @@
-import type { CatalogEntry } from ./catalog
+import type { CatalogEntry } from './catalog'
 
 export interface DiscoveryResult {
   readonly found: boolean

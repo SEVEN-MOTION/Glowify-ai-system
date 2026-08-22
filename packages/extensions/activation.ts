@@ -1,4 +1,4 @@
-import type { ExtensionLifecycleState } from ./lifecycle
+import type { ExtensionLifecycleState } from './lifecycle'
 
 export interface ActivationRequest {
   readonly extensionId: string

@@ -1,4 +1,4 @@
-import type { VersionDescriptor } from ./version
+import type { VersionDescriptor } from './version'
 
 export interface CompatibilityRule {
   readonly subject: string

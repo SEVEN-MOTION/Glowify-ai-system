@@ -1,6 +1,7 @@
 import type { ConfigurationResolver } from './resolver'
 import type { ConfigurationValidator } from './validator'
-import type { FeatureFlag, FeatureFlagEvaluation, FeatureFlagTarget } from './types'
+import type { FeatureFlag } from './feature-flag'
+import type { FeatureFlagEvaluation, FeatureFlagTarget } from './types'
 import type { ConfigurationSnapshot, ConfigurationScope } from './types'
 
 export interface ConfigurationService<T = unknown> {

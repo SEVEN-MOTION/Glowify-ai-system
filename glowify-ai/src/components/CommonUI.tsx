@@ -11,7 +11,7 @@ interface CardProps {
   };
 }
 
-export const Card: React.FC<CardProps> = ({ children, className = "", metric }) => (
+export const Card: any = ({ children, className = "", metric }) => (
   <motion.div 
     className={`glw-card bg-[#140F14] border border-[#231820] rounded-2xl p-6 shadow-xl relative overflow-hidden ${className}`}
   >
@@ -36,7 +36,7 @@ interface ToggleProps {
   disabled?: boolean;
 }
 
-export const Toggle: React.FC<ToggleProps> = ({ checked, onChange, disabled = false }) => (
+export const Toggle: any = ({ checked, onChange, disabled = false }) => (
   <div
     onClick={!disabled ? onChange : undefined}
     className="glw-toggle-track"
@@ -60,7 +60,7 @@ interface ProgressBarProps {
   color?: string;
 }
 
-export const ProgressBar: React.FC<ProgressBarProps> = ({ value, max }) => {
+export const ProgressBar: any = ({ value, max }) => {
   const pct = Math.min(100, Math.round((value / max) * 100));
   return (
     <div className="glw-progress-track bg-[#1A1218] h-[6px] rounded-full overflow-hidden">
@@ -81,7 +81,7 @@ interface SkeletonProps {
   r?: string | number;
 }
 
-export const Skeleton: React.FC<SkeletonProps> = ({ w = '100%', h = 16, r = 6 }) => (
+export const Skeleton: any = ({ w = '100%', h = 16, r = 6 }) => (
   <div className="glw-skeleton" style={{ width: w, height: h, borderRadius: r }} />
 );
 

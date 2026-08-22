@@ -1,4 +1,4 @@
-import type { PermissionDescriptor } from ./permission
+import type { PermissionDescriptor } from './permission'
 
 export interface SandboxPolicy {
   readonly name: string

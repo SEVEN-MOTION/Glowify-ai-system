@@ -1,4 +1,4 @@
-import type { EventDescriptor } from ./event
+import type { EventDescriptor } from './event'
 
 export interface HookDescriptor {
   readonly id: string

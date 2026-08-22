@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Home, Bot, BarChart2, Megaphone, Package, Users, Zap, Settings, 
-  LucideIcon, TrendingUp, Bell, ChevronDown, User, LogOut, Store,
+  Home, Bot, BarChart2, Megaphone, Package, Users, Zap, Settings, LucideIcon, TrendingUp, Bell, ChevronDown, User, LogOut, Store,
   LayoutDashboard, Shield, CreditCard
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -51,9 +50,9 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, badge, act
 );
 
 // Workspace Store Selector
-const WorkspaceSwitcher: React.FC<{ 
-  stores: typeof MOCK_STORES; 
-  selectedStore: string; 
+const WorkspaceSwitcher: React.FC<{
+  stores: typeof MOCK_STORES;
+  selectedStore: string;
   onSelect: (id: string) => void;
 }> = ({ stores, selectedStore, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);

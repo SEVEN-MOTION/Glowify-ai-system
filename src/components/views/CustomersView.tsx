@@ -5,6 +5,30 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, ComposedChart, Bar, 
 import { MetricCard } from '../MetricCard';
 import { useData } from '../../contexts/DataContext';
 
+const RETENTION_DATA = Array.from({length: 12}, (_, i) => ({
+  month: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i],
+  retention: Math.round(62 - i * 2 + Math.random() * 8),
+  newCustomers: Math.round(180 + i * 15 + Math.random() * 40),
+}));
+
+const GEO_DATA = [
+  { country: 'United States', flag: '🇺🇸', revenue: 68200, customers: 1842, pct: 48 },
+  { country: 'United Kingdom', flag: '🇬🇧', revenue: 24800, customers: 612, pct: 17 },
+  { country: 'Canada', flag: '🇨🇦', revenue: 18400, customers: 448, pct: 13 },
+  { country: 'Australia', flag: '🇦🇺', revenue: 14200, customers: 310, pct: 10 },
+  { country: 'Germany', flag: '🇩🇪', revenue: 9600, customers: 188, pct: 7 },
+  { country: 'Other', flag: '🌍', revenue: 7640, customers: 156, pct: 5 },
+];
+
+const TOP_CUSTOMERS = [
+  { name: 'Priya Mehta', email: 'p.mehta@...', orders: 12, ltv: 1248, segment: 'VIP', lastOrder: '2d ago' },
+  { name: 'Claire Fontaine', email: 'c.f@...', orders: 9, ltv: 967, segment: 'VIP', lastOrder: '5d ago' },
+  { name: 'Amara Osei', email: 'a.osei@...', orders: 8, ltv: 842, segment: 'VIP', lastOrder: '1d ago' },
+  { name: 'Sophie Laurent', email: 's.l@...', orders: 7, ltv: 743, segment: 'Active', lastOrder: '8d ago' },
+  { name: 'Yuki Tanaka', email: 'y.t@...', orders: 6, ltv: 618, segment: 'Active', lastOrder: '3d ago' },
+];
+
+
 export const CustomersView: React.FC = () => {
   const { customers, loading } = useData();
   const [searchQuery, setSearchQuery] = useState('');

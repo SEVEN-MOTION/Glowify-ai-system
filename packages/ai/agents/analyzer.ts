@@ -1,5 +1,5 @@
 // packages/ai/agents/analyzer.ts
-import { OpenAI } from 'openai';
+import OpenAI from 'openai';
 import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { rankActionsByPerformance, calculateActionEffectiveness } from '../scoring/performance';

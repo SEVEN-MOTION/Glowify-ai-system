@@ -4,7 +4,7 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
+export const DashboardLayout: any = ({ children }) => {
   return (
     <div className="min-h-screen bg-[#0a0a0b] text-neutral-200 selection:bg-indigo-500/30 selection:text-white antialiased">
       {/* Background Decorative Mesh */}

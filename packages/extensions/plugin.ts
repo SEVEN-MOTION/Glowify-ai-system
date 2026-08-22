@@ -1,6 +1,6 @@
-import type { CapabilityDescriptor } from ./capability
-import type { DependencyDeclaration } from ./dependency
-import type { ExtensionMetadata } from ./metadata
+import type { CapabilityDescriptor } from './capability'
+import type { DependencyDeclaration } from './dependency'
+import type { ExtensionMetadata } from './metadata'
 
 export interface PluginContract {
   readonly id: string

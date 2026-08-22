@@ -189,7 +189,7 @@ const AppShell: React.FC = () => {
   const renderView = () => {
     switch (activeTab) {
       case 'overview': return <OverviewView loading={authLoading} onNavigate={setActiveTab} />;
-      case 'analytics': return <AnalyticsView loading={authLoading} onNavigate={setActiveTab} />;
+      case 'analytics': return <AnalyticsView onNavigate={setActiveTab} />;
       case 'marketing': return <MarketingView onNavigate={setActiveTab} />;
       case 'products': return <InventoryView onNavigate={setActiveTab} />;
       case 'customers': return <CustomersView />;

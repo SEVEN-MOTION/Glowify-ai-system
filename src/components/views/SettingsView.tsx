@@ -97,10 +97,17 @@ const SkeletonField: React.FC<{ className?: string }> = ({ className = '' }) => 
 
 // API Key field with test connection button
 const ApiKeyField: React.FC<{
-  label: string; description: string; placeholder: string; value: string;
-  onChange: (v: string) => void; icon: React.ReactNode; accentColor: string;
-  status: 'connected' | 'pending' | 'disconnected'; isLoading?: boolean;
-  onTestConnection: () => void; isTesting?: boolean;
+  label: string;
+  description: string;
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+  icon: React.ReactNode;
+  accentColor: string;
+  status: 'connected' | 'pending' | 'disconnected';
+  isLoading?: boolean;
+  onTestConnection: () => void;
+  isTesting?: boolean;
 }> = ({ label, description, placeholder, value, onChange, icon, accentColor, status, isLoading, onTestConnection, isTesting }) => {
   const [show, setShow] = useState(false);
 

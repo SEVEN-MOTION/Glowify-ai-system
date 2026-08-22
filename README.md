@@ -58,4 +58,4 @@ This project is configured for deployment on Vercel. The `vercel.json` file at t
 
 ## License
 
-SEVEN-MOTION Co.
+SEVEN-MOTION 

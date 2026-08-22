@@ -9,7 +9,7 @@ interface MetricCardProps {
   loading?: boolean;
 }
 
-export const MetricCard: React.FC<MetricCardProps> = ({ label, value, change, trend, loading }) => {
+export const MetricCard: any = ({ label, value, change, trend, loading }) => {
   return (
     <div 
       className="relative group overflow-hidden rounded-2xl p-6 transition-all shadow-xl"

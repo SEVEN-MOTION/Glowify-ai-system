@@ -18,5 +18,5 @@ export const executionQueue = new Queue('insight-execution', {
 export const getRateLimiter = (tenantId: string) => ({
   max: 10, // Max executions per minute
   duration: 60000,
-  keyPrefix: \`rate-limit:\${tenantId}\`
+  keyPrefix: `rate-limit:${tenantId}`
 });

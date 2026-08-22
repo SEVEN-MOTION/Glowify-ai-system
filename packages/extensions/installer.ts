@@ -1,4 +1,4 @@
-import type { ExtensionManifest } from ./manifest
+import type { ExtensionManifest } from './manifest'
 
 export interface InstallationRequest {
   readonly manifest: ExtensionManifest

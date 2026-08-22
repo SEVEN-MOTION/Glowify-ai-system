@@ -1,3 +1,6 @@
+import type { PermissionSet } from './permission'
+import type { Policy } from './policy'
+
 export type TenantId = string
 export type OrganizationId = string
 export type TeamId = string

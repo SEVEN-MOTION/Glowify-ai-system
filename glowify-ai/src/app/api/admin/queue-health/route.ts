@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getQueueHealth } from '../../../../packages/worker/queue/ai-queue'
+import { getQueueHealth } from '@/packages/worker/queue/ai-queue'
 
 export async function GET() {
   try {

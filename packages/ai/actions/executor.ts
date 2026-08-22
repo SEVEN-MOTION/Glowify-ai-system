@@ -1,5 +1,5 @@
 // packages/ai/actions/executor.ts
-import { Resend } from 'resend';
+import Resend from 'resend';
 import { logger } from '../services/observability';
 
 const resend = new Resend(process.env.RESEND_API_KEY);

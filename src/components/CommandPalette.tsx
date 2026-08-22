@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Package, Users, Zap, Settings, BarChart2, Megaphone, Home } from 'lucide-react';
+import { Search, Package, Users, Zap, Settings, LucideIcon, BarChart2, Megaphone, Home } from 'lucide-react';
 
 interface CommandPaletteProps {
   isOpen: boolean;

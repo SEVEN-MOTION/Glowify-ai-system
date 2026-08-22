@@ -1,4 +1,4 @@
-import type { SandboxPolicy } from ./sandbox
+import type { SandboxPolicy } from './sandbox'
 
 export interface SecurityPolicy {
   readonly name: string

@@ -1,6 +1,6 @@
 // src/components/Sidebar.tsx
 import React from 'react';
-import { Home, Bot, BarChart2, Megaphone, Package, Users, Zap, Settings, LogOut, LucideIcon, TrendingUp } from 'lucide-react';
+import { Home, Bot, BarChart2, Megaphone, Package, Users, Zap, Settings, LucideIcon, LogOut,  TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface SidebarItemProps {
@@ -10,7 +10,7 @@ interface SidebarItemProps {
   onClick: () => void;
 }
 
-const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, active, onClick }) => (
+const SidebarItem: any = ({ icon: Icon, label, active, onClick }) => (
   <motion.div 
     whileHover={{ x: 4 }}
     whileTap={{ scale: 0.98 }}
@@ -42,7 +42,7 @@ interface SidebarProps {
   onLogout: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onLogout }) => {
+export const Sidebar: any = ({ activeTab, setActiveTab, onLogout }) => {
   const menuItems = [
     { id: 'overview', icon: Home, label: 'Command Center' },
     { id: 'ai', icon: Bot, label: 'AI Agents' },

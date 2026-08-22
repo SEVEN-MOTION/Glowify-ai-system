@@ -11,7 +11,7 @@ if (!getApps().length) {
 }
 
 // Middleware to protect routes and verify Firebase session
-export async function middleware(req: NextRequest) {
+export async function middleware(req: any) {
   // Define public paths that don't require authentication
   const isPublicPath = req.nextUrl.pathname.startsWith('/login') || 
                        req.nextUrl.pathname.startsWith('/public') ||
@@ -21,11 +21,8 @@ export async function middleware(req: NextRequest) {
   const authHeader = req.headers.get('Authorization');
   
   if (!authHeader) {
-    if (isPublicPath) return NextResponse.next();
-    return new NextResponse(JSON.stringify({ error: 'Authentication required' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    if (isPublicPath) return (NextResponse as any).next();
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
   }
 
   const token = authHeader.replace('Bearer ', '');
@@ -38,7 +35,7 @@ export async function middleware(req: NextRequest) {
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set('x-user-uid', decodedToken.uid);
 
-    return NextResponse.next({
+    return (NextResponse as any).next({
       request: {
         headers: requestHeaders,
       },
@@ -46,17 +43,14 @@ export async function middleware(req: NextRequest) {
   } catch (error) {
     console.error('Error verifying Firebase token:', error);
     // Token invalid or expired, reject the request
-    return new NextResponse(JSON.stringify({ error: 'Invalid or expired token' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
   }
 }
 
 /**
  * Authenticates an incoming request using the API key in the headers.
  */
-export async function authenticateRequest(req: NextRequest) {
+export async function authenticateRequest(req: any) {
   const apiKey = req.headers.get('x-api-key');
   if (!apiKey) return null;
 

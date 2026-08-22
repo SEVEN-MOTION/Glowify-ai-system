@@ -1,4 +1,4 @@
-import type { NotificationChannelName } from './channel'
+import type { NotificationChannelName } from './types'
 import type { NotificationMetadata } from './types'
 
 export interface DeliveryRecord {

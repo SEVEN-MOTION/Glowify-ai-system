@@ -1,6 +1,6 @@
 // packages/worker/handlers/event-handler.ts
 import { analyzeBusinessData } from '@/packages/ai/agents/analyzer';
-import { executeAction } from '@/packages/ai/actions/executor';
+import { executeAutomation } from '@/packages/ai/actions/executor';
 import { prisma } from '@/packages/database/client';
 
 export async function processShopifyEvent(event: any) {
@@ -8,10 +8,10 @@ export async function processShopifyEvent(event: any) {
   await prisma.automationLog.create({ data: { action: 'RECEIVE_SHOPIFY_EVENT', metadata: event } });
 
   // 2. Fetch context/relevant data for the tenant
-  const businessData = await getRelevantBusinessContext(event.tenant_id);
+  const businessData = event;
 
   // 3. AI Analysis
-  const insights = await analyzeBusinessData(businessData);
+  const insights = await analyzeBusinessData(event.tenant_id, businessData);
 
   // 4. Execution Loop
   for (const insight of insights) {
@@ -19,7 +19,7 @@ export async function processShopifyEvent(event: any) {
     
     // Auto-execute if priority is critical
     if (insight.priority <= 2) {
-      await executeAction(savedInsight);
+      await executeAutomation(event.tenant_id, savedInsight.automationAction as any);
     }
   }
 }

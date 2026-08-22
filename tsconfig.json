@@ -4,7 +4,8 @@
     "src",
     "packages",
     "apps",
-    "glowify-ai"
+    "glowify-ai",
+    "types"
   ],
   "exclude": [
     "node_modules",
