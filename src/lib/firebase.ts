@@ -19,7 +19,6 @@ import {
   doc,
   getDoc,
   setDoc,
-  updateDoc,
   serverTimestamp,
   collection,
   query,
@@ -30,14 +29,43 @@ import {
   Unsubscribe
 } from 'firebase/firestore';
 
+const firebaseEnv = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+};
+
+const requiredFirebaseConfig = [
+  ['VITE_FIREBASE_API_KEY', firebaseEnv.apiKey],
+  ['VITE_FIREBASE_AUTH_DOMAIN', firebaseEnv.authDomain],
+  ['VITE_FIREBASE_PROJECT_ID', firebaseEnv.projectId],
+  ['VITE_FIREBASE_STORAGE_BUCKET', firebaseEnv.storageBucket],
+  ['VITE_FIREBASE_MESSAGING_SENDER_ID', firebaseEnv.messagingSenderId],
+  ['VITE_FIREBASE_APP_ID', firebaseEnv.appId],
+] as const;
+
+const missingFirebaseConfig = requiredFirebaseConfig
+  .filter(([, value]) => !value)
+  .map(([name]) => name);
+
+if (missingFirebaseConfig.length > 0) {
+  throw new Error(
+    `Glowify Firebase configuration is incomplete. Missing: ${missingFirebaseConfig.join(', ')}`
+  );
+}
+
 const firebaseConfig = {
-  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCJqT-DKaEyuMGqp-Iyx9XFAjQdimswS90",
-  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "glowify-ai-system.firebaseapp.com",
-  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID || "glowify-ai-system",
-  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "glowify-ai-system.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "507485872156",
-  appId:             import.meta.env.VITE_FIREBASE_APP_ID || "1:507485872156:web:fb8782bd039a71a14e3fd9",
-  measurementId:     import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-648EKGCVB4"
+  apiKey: firebaseEnv.apiKey,
+  authDomain: firebaseEnv.authDomain,
+  projectId: firebaseEnv.projectId,
+  storageBucket: firebaseEnv.storageBucket,
+  messagingSenderId: firebaseEnv.messagingSenderId,
+  appId: firebaseEnv.appId,
+  ...(firebaseEnv.measurementId ? { measurementId: firebaseEnv.measurementId } : {}),
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
@@ -226,38 +254,4 @@ export const firestoreHelpers = {
       callback([]);
     });
   },
-
-  // Update agent status
-  updateAgentStatus: async (uid: string, agentId: string, status: 'active' | 'paused') => {
-    if (!db) return;
-    try {
-      await updateDoc(doc(db, 'users', uid, 'agents', agentId), {
-        status,
-        updatedAt: serverTimestamp()
-      });
-    } catch (err) {
-      console.error('Error updating agent status:', err);
-    }
-  },
-
-  // Get integrations from user profile
-  getIntegrations: async (uid: string) => {
-    if (!db) return null;
-    try {
-      const snap = await getDoc(doc(db, 'users', uid));
-      if (snap.exists()) {
-        const data = snap.data();
-        return {
-          shopifyApiKey: data.shopifyApiKey || '',
-          shopifyStoreDomain: data.shopifyStoreDomain || '',
-          klaviyoApiKey: data.klaviyoApiKey || '',
-          geminiApiKey: data.geminiApiKey || ''
-        };
-      }
-      return null;
-    } catch (err) {
-      console.error('Error getting integrations:', err);
-      return null;
-    }
-  }
 };
