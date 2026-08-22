@@ -112,7 +112,7 @@ const TimelineRow: React.FC<{ event: TimelineEvent }> = ({ event }) => (
   </div>
 );
 
-const AIAgentsView: React.FC = () => {
+export const AIAgentsView: React.FC = () => {
   const { profile } = useAuth();
   const storeName = profile?.storeName || 'Glowify Workspace';
 
