@@ -1,8 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { getAdminServices } from '../../packages/worker/firebase-admin.js';
 
-const FOUNDER_EMAIL = 'glowifybabystores@gmail.com';
-
 type ApiRequest = {
   method?: string;
   headers: Record<string, string | string[] | undefined>;
@@ -40,16 +38,20 @@ async function requireStoreAccess(req: ApiRequest, storeId: string) {
 
   let decodedToken;
   try {
-    decodedToken = await adminAuth.verifyIdToken(token);
+    // Revocation-aware verification is intentional for this privileged, billable endpoint.
+    decodedToken = await adminAuth.verifyIdToken(token, true);
   } catch {
     return { status: 401 as const, error: 'Authentication required' };
   }
 
-  if (decodedToken.email === FOUNDER_EMAIL) {
-    return { decodedToken };
+  let store;
+  try {
+    store = await db.collection('stores').doc(storeId).get();
+  } catch {
+    // Authorization must fail closed when ownership cannot be established.
+    return { status: 503 as const, error: 'Store authorization is temporarily unavailable' };
   }
 
-  const store = await db.collection('stores').doc(storeId).get();
   if (!store.exists) {
     return { status: 404 as const, error: 'Store not found' };
   }
@@ -57,7 +59,10 @@ async function requireStoreAccess(req: ApiRequest, storeId: string) {
   const data = store.data() ?? {};
   const ownerUid = data.owner_uid ?? data.ownerUid ?? data.user_id ?? data.userId;
 
-  if (ownerUid !== decodedToken.uid) {
+  // Firebase custom claims are server-controlled. Unlike email equality, an explicit
+  // admin claim can be granted and revoked by trusted administrative code only.
+  const isServerAuthorizedAdmin = decodedToken.admin === true;
+  if (!isServerAuthorizedAdmin && ownerUid !== decodedToken.uid) {
     return { status: 403 as const, error: 'Forbidden' };
   }
 
