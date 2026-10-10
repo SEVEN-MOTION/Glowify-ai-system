@@ -7,9 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test": "vitest run",
     "preview": "vite preview",
-    "simulate": "npx tsx src/utils/chaosSimulator.ts"
+    "simulate": "npx tsx src/utils/chaosSimulator.ts",
+    "test:security": "vitest run api/ai/analyze.test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.6.0",
