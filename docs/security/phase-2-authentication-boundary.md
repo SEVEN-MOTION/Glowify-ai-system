@@ -20,7 +20,7 @@ Phase 1 investigation documents remain on the original inventory branch:
 3. **Explicit server-controlled admin path:** cross-store access requires the verified Firebase token to contain the custom claim `admin: true`. Firebase custom claims must only be granted by trusted administrative code. This branch does not provision claims or change user roles.
 4. **Fail-closed store authorization:** if Firestore cannot establish store ownership, the handler returns `503` and does not call Gemini. Missing stores return `404`; verified non-owners return `403`.
 5. **Focused tests:** added handler tests for missing tokens, rejected tokens, owner access, cross-store denial, explicit admin claims, and authorization-service failures.
-6. **Test command:** added `pnpm test` as `vitest run` in the root package scripts.
+6. **Test command:** added `pnpm test:security` targeting only `api/ai/analyze.test.ts`, avoiding unrelated legacy test trees whose runtime dependencies are not yet verified.
 
 ## Operational compatibility note
 
