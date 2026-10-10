@@ -122,6 +122,19 @@ describe('POST /api/ai/analyze authentication boundary', () => {
     expect(mocks.generateContent).not.toHaveBeenCalled();
   });
 
+  it('does not grant cross-store access based on founder email alone', async () => {
+    mocks.verifyIdToken.mockResolvedValueOnce({
+      uid: 'founder-user',
+      email: 'glowifybabystores@gmail.com',
+    });
+    const res = makeResponse();
+
+    await handler(makeRequest('founder-token') as never, res as never);
+
+    expect(res.statusCode).toBe(403);
+    expect(mocks.generateContent).not.toHaveBeenCalled();
+  });
+
   it('allows cross-store access only when the verified token has a server-controlled admin claim', async () => {
     mocks.verifyIdToken.mockResolvedValueOnce({ uid: 'admin-1', admin: true });
     const res = makeResponse();
