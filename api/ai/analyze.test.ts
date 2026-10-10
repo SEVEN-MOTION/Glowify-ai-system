@@ -19,15 +19,17 @@ vi.mock('../../packages/worker/firebase-admin.js', () => ({
 
 import handler from './analyze';
 
-function makeResponse() {
-  const res: {
-    statusCode: number;
-    body: unknown;
-    headers: Record<string, string>;
-    status: (code: number) => typeof res;
-    json: (body: unknown) => unknown;
-    setHeader: (name: string, value: string) => void;
-  } = {
+type MockResponse = {
+  statusCode: number;
+  body: unknown;
+  headers: Record<string, string>;
+  status(code: number): MockResponse;
+  json(body: unknown): unknown;
+  setHeader(name: string, value: string): void;
+};
+
+function makeResponse(): MockResponse {
+  const res: MockResponse = {
     statusCode: 200,
     body: undefined,
     headers: {},
