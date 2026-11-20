@@ -20,4 +20,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm test:security
+      - run: pnpm test:auth
       - run: pnpm build
