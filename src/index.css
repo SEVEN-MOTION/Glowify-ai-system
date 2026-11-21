@@ -205,3 +205,14 @@ body {
 :root[data-theme="light"] [class*="text-[#C9747A]"],
 :root[data-theme="light"] [class*="text-[#D4A0A3]"],
 :root[data-theme="light"] [class*="text-[#F3CBD0]"] { color: #874e59 !important; }
+
+
+/* Compact sidebar labels remain available when pointer or keyboard focus expands it. */
+.glw-sidebar:not(:hover):not(:focus-within):not([style*="280px"]) .glw-sidebar-text,
+.glw-sidebar:not(:hover):not(:focus-within):not([style*="280px"]) .glw-sidebar-label {
+  display: none;
+}
+.glw-sidebar:not(:hover):not(:focus-within):not([style*="280px"]) button {
+  justify-content: center;
+  padding-inline: 0.5rem;
+}
