@@ -150,6 +150,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   const currency = payload.data.shop?.currencyCode || orders[0]?.node?.currentTotalPriceSet?.shopMoney?.currencyCode || null;
   return json(res, 200, {
     status: 'connected',
+    availableStores: connections.map(connection => ({ domain: connection.domain, name: connection.name })),
     store: { domain: selected.domain, name: payload.data.shop?.name || selected.name, connectedAt: selected.connectedAt },
     summary: {
       periodStart: start.toISOString(),
