@@ -198,3 +198,10 @@ body {
 :root[data-theme="light"] [class~="text-red-300"] { color: #9b3039 !important; }
 :root[data-theme="light"] [class~="text-blue-200"],
 :root[data-theme="light"] [class~="text-blue-300"] { color: #315d92 !important; }
+
+:root[data-theme="light"] [class*="text-[#60A5FA]"] { color: #315d92 !important; }
+:root[data-theme="light"] [class*="text-[#8A7A81]"] { color: #665d64 !important; }
+:root[data-theme="light"] [class*="text-[#BCA8AE]"] { color: #625b66 !important; }
+:root[data-theme="light"] [class*="text-[#C9747A]"],
+:root[data-theme="light"] [class*="text-[#D4A0A3]"],
+:root[data-theme="light"] [class*="text-[#F3CBD0]"] { color: #874e59 !important; }
