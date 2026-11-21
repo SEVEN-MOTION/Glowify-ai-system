@@ -8,9 +8,11 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@google/genai', () => ({
-  GoogleGenAI: vi.fn().mockImplementation(() => ({
-    models: { generateContent: mocks.generateContent },
-  })),
+  GoogleGenAI: vi.fn().mockImplementation(function () {
+    return {
+      models: { generateContent: mocks.generateContent },
+    };
+  }),
 }));
 
 vi.mock('../../packages/worker/firebase-admin.js', () => ({

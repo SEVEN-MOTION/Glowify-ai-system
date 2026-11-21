@@ -10,7 +10,8 @@
     "test": "vitest run --config vitest.config.ts",
     "preview": "vite preview",
     "simulate": "npx tsx src/utils/chaosSimulator.ts",
-    "test:security": "vitest run api/ai/analyze.test.ts"
+    "test:security": "vitest run api/ai/analyze.test.ts",
+    "test:auth": "vitest run src/components/AuthScreen.test.tsx"
   },
   "dependencies": {
     "@google/genai": "^2.6.0",
