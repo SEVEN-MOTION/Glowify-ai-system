@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, AlertCircle, ArrowRight, Bot, CalendarDays, CheckCircle2, Clock3, Package, Plug, ShoppingBag, Sparkles, Store, TrendingUp, Users } from 'lucide-react';
+import { Activity, AlertCircle, ArrowRight, Bot, CalendarDays, Clock3, Package, Plug, ShoppingBag, Sparkles, Store, TrendingUp, Users } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useAuth } from '../contexts/AuthContext';
 import { getSavedStoreDetails } from '../utils/stores';
