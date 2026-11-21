@@ -17,7 +17,7 @@ export const ConnectStore: React.FC<ConnectStoreProps> = ({
   description = 'Connect your Shopify store to unlock real-time analytics, AI insights, and automated inventory management.'
 }) => {
   const { user } = useAuth();
-  const [shop, setShop] = useState(import.meta.env.VITE_SHOPIFY_STORE_DOMAIN || '');
+  const [shop, setShop] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
