@@ -93,7 +93,7 @@ export const DashboardShell: React.FC<{
 
       {mobileNavOpen && <button type="button" aria-label="Close navigation menu" onClick={() => setMobileNavOpen(false)} className="fixed inset-0 z-30 bg-black/70 md:hidden" />}
 
-      <aside aria-label="Primary navigation" className={`fixed left-0 top-0 z-40 h-[100dvh] w-[min(280px,86vw)] flex-col border-r border-[#1E1E3A] bg-[#080608] transition-transform duration-200 motion-reduce:transition-none ${mobileNavOpen ? 'flex translate-x-0' : 'hidden md:flex md:translate-x-0'}`}>
+      <aside aria-label="Primary navigation" className={`fixed left-0 top-0 z-40 h-[100dvh] w-[min(280px,86vw)] md:w-[76px] md:hover:w-[280px] md:focus-within:w-[280px] overflow-hidden flex-col border-r border-[#1E1E3A] bg-[#080608] transition-[width,transform] duration-200 motion-reduce:transition-none ${mobileNavOpen ? 'flex translate-x-0' : 'hidden md:flex md:translate-x-0'}`}>
         <div className="flex items-center justify-between border-b border-[#1E1E3A] px-6 pb-5 pt-6">
           <button type="button" onClick={() => navigate('overview')} aria-label="Glowify AI home" className="flex items-center gap-3 rounded-lg text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A0A3]">
             <img src="/glowify-mark.svg" alt="" className="h-[42px] w-[42px] shrink-0" />
@@ -112,7 +112,7 @@ export const DashboardShell: React.FC<{
         </div>
       </aside>
 
-      <div className="flex min-h-screen flex-col md:ml-[280px]">
+      <div className="flex min-h-screen flex-col md:ml-[76px]">
         <header className="sticky top-0 z-20 flex min-h-[72px] items-center justify-between gap-2 border-b border-[#1E1E3A] bg-[#0a0a0b]/95 px-3 backdrop-blur-xl sm:px-5 lg:px-6">
           <div className="flex min-w-0 items-center gap-2 sm:gap-4">
             <button type="button" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation menu" aria-expanded={mobileNavOpen} className="rounded-lg p-2 text-[#F1F1F8] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3] md:hidden"><Menu size={20} /></button>
