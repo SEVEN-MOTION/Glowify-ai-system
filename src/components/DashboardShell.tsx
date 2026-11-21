@@ -97,7 +97,7 @@ export const DashboardShell: React.FC<{
         <div className="flex items-center justify-between border-b border-[#1E1E3A] px-6 pb-5 pt-6">
           <button type="button" onClick={() => navigate('overview')} aria-label="Glowify AI home" className="flex items-center gap-3 rounded-lg text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A0A3]">
             <img src="/glowify-mark.svg" alt="" className="h-[42px] w-[42px] shrink-0" />
-            <span><span className="block text-[18px] font-black tracking-[-0.03em] text-[#F5EEF0]">GLOWIFY<span className="text-[#C9747A]">AI</span></span><span className="block text-[8px] font-bold tracking-[0.2em] text-[#C2B4B9]">BEAUTY OS</span></span>
+            <span><span className="block text-[18px] font-black tracking-[-0.03em] text-[#F5EEF0]">GLOWIFY<span className="text-[#C9747A]">AI</span></span></span>
           </button>
           <button type="button" onClick={() => setMobileNavOpen(false)} aria-label="Close navigation" className="rounded-lg p-2 text-[#C2B4B9] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3] md:hidden"><X size={18} /></button>
         </div>
