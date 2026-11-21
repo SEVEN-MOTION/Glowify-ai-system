@@ -96,7 +96,7 @@ export const DashboardShell: React.FC<{
       <aside aria-label="Primary navigation" className={`fixed left-0 top-0 z-40 h-[100dvh] w-[min(280px,86vw)] flex-col border-r border-[#1E1E3A] bg-[#080608] transition-transform duration-200 motion-reduce:transition-none ${mobileNavOpen ? 'flex translate-x-0' : 'hidden md:flex md:translate-x-0'}`}>
         <div className="flex items-center justify-between border-b border-[#1E1E3A] px-6 pb-5 pt-6">
           <button type="button" onClick={() => navigate('overview')} aria-label="Glowify AI home" className="flex items-center gap-3 rounded-lg text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A0A3]">
-            <span className="flex h-[42px] w-[42px] items-center justify-center rounded-xl bg-gradient-to-br from-[#C9747A] to-[#8B4A6B]"><Zap size={22} className="fill-white text-white" aria-hidden="true" /></span>
+            <img src="/glowify-mark.svg" alt="" className="h-[42px] w-[42px] shrink-0" />
             <span><span className="block text-[18px] font-black tracking-[-0.03em] text-[#F5EEF0]">GLOWIFY<span className="text-[#C9747A]">AI</span></span><span className="block text-[8px] font-bold tracking-[0.2em] text-[#C2B4B9]">BEAUTY OS</span></span>
           </button>
           <button type="button" onClick={() => setMobileNavOpen(false)} aria-label="Close navigation" className="rounded-lg p-2 text-[#C2B4B9] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3] md:hidden"><X size={18} /></button>
