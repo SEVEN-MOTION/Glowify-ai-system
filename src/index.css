@@ -216,3 +216,12 @@ body {
   justify-content: center;
   padding-inline: 0.5rem;
 }
+
+@media (min-width: 768px) {
+  .glw-sidebar:hover + div,
+  .glw-sidebar:focus-within + div,
+  .glw-sidebar[style*="280px"] + div {
+    margin-left: 280px;
+    transition: margin-left 200ms ease;
+  }
+}
