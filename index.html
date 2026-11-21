@@ -18,6 +18,15 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      try {
+        const savedTheme = window.localStorage.getItem('glowify.theme');
+        if (savedTheme === 'light' || savedTheme === 'dark') {
+          document.documentElement.dataset.theme = savedTheme;
+          document.documentElement.style.colorScheme = savedTheme;
+        }
+      } catch {}
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
