@@ -6,6 +6,7 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { updateProfile, linkWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth';
 import { useAuth } from '../../contexts/AuthContext';
+import { ConnectStore } from '../ConnectStore';
 import { getSavedStoreDetails } from '../../utils/stores';
 
 // Shopify domain validation regex
@@ -298,7 +299,7 @@ export const SettingsView: React.FC = () => {
 
   const handleSaveAndSwitch = async () => {
     setShowUnsavedDialog(false);
-    await handleSaveApiKeys();
+    await handleSaveProfile();
     if (pendingTab) setActiveTab(pendingTab);
     setPendingTab(null);
   };
@@ -638,64 +639,18 @@ export const SettingsView: React.FC = () => {
 
         {activeTab === 'integrations' && (
           <motion.div id="settings-panel-integrations" role="tabpanel" aria-labelledby="settings-tab-integrations" key="integrations" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-            <section className="bg-[#0F0F1E] border border-[#1E1E3A] rounded-[24px] p-6">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-[#10B981]/10 flex items-center justify-center"><Plug size={24} className="text-[#10B981]" /></div>
-                <div><h3 className="text-[15px] font-bold text-[#F5EEF0]">Integration settings</h3><p className="text-[11px] text-[#C2B4B9]">Manage saved integration credentials. A saved key does not mean the connection is verified.</p></div>
-              </div>
-              <div className="space-y-4">
-                <ApiKeyField label="Shopify Admin API" description="Connect your Shopify store for product & order sync." placeholder="shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                  value={shopifyApiKey} onChange={setShopifyApiKey} icon={<Store size={18} />} accentColor="#10B981" status={connectionStatus.shopify} isLoading={isLoading}
-                  onTestConnection={() => handleTestConnection('shopify')} isTesting={testingConnections.shopify} />
-
-                {isLoading ? (
-                  <div className="bg-[#0F0F1E] border border-[#1E1E3A] rounded-2xl p-5 animate-pulse">
-                    <div className="flex items-start gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-[#1E1E3A]"></div>
-                      <div className="flex-1"><div className="h-4 w-40 bg-[#1E1E3A] rounded mb-2"></div><div className="h-3 w-32 bg-[#1E1E3A] rounded"></div></div>
-                    </div>
-                    <div className="h-11 bg-[#1E1E3A] rounded-xl"></div>
-                  </div>
-                ) : (
-                  <div className="bg-[#0F0F1E] border border-[#1E1E3A] rounded-2xl p-5 hover:border-[#2A2A48] transition-all group">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#10B981]/10 border border-[#10B981]/25"><Store size={18} className="text-[#10B981]" /></div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="text-sm font-bold text-[#F1F1F8]">Shopify Store Domain</p>
-                            <IntegrationStatus status={connectionStatus.shopify} />
-                          </div>
-                          <p className="text-xs text-[#6B6B88] mt-0.5">Your myshopify.com store URL</p>
-                        </div>
-                      </div>
-                      <button type="button" aria-label="Test Shopify store domain" onClick={() => handleTestConnection('shopify')} disabled={testingConnections.shopify || !shopifyStoreDomain}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-30"
-                        style={{ background: '#10B98115', color: '#10B981', border: '1px solid #10B98125' }}>
-                        {testingConnections.shopify ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
-                        {testingConnections.shopify ? 'Testing...' : 'Test'}
-                      </button>
-                    </div>
-                    <label htmlFor="settings-shopify-domain" className="sr-only">Shopify store domain</label>
-                    <input id="settings-shopify-domain" type="text" value={shopifyStoreDomain} onChange={e => handleShopifyDomainChange(e.target.value)} placeholder="your-store.myshopify.com" aria-invalid={Boolean(shopifyDomainError)} aria-describedby={shopifyDomainError ? 'settings-shopify-domain-error' : undefined}
-                      className={`w-full bg-[#07070F] border rounded-xl px-4 py-3 text-sm text-[#F1F1F8] placeholder:text-[#3D3D55] font-mono focus:outline-none focus:border-[#C9747A]/50 transition-all ${shopifyDomainError ? 'border-[#EF4444]/50' : 'border-[#1E1E3A]'}`} />
-                    {shopifyDomainError && <p id="settings-shopify-domain-error" role="alert" className="text-[10px] text-[#EF4444] mt-2 font-bold uppercase tracking-wider flex items-center gap-1"><AlertCircle size={10} /> {shopifyDomainError}</p>}
-                  </div>
-                )}
-
-                <ApiKeyField label="Klaviyo Private Key" description="Automate flows and marketing campaigns." placeholder="pk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                  value={klaviyoApiKey} onChange={setKlaviyoApiKey} icon={<MessageSquare size={18} />} accentColor="#3B82F6" status={connectionStatus.klaviyo} isLoading={isLoading}
-                  onTestConnection={() => handleTestConnection('klaviyo')} isTesting={testingConnections.klaviyo} />
-                <ApiKeyField label="Gemini AI Engine" description="Powers AI agents and product intelligence." placeholder="AIzaSy..."
-                  value={geminiApiKey} onChange={setGeminiApiKey} icon={<Sparkles size={18} />} accentColor="#C9747A" status={connectionStatus.gemini} isLoading={isLoading}
-                  onTestConnection={() => handleTestConnection('gemini')} isTesting={testingConnections.gemini} />
+            <ConnectStore
+              title="Connect Shopify securely"
+              description="Glowify uses Shopify OAuth. Your store access token stays on the server and is encrypted; you do not need to paste an API key here."
+            />
+            <section className="rounded-[24px] border border-[#1E1E3A] bg-[#0F0F1E] p-6">
+              <div className="mb-4 flex items-center gap-3"><Plug size={20} className="text-[#D4A0A3]" aria-hidden="true" /><div><h3 className="text-[15px] font-bold text-[#F5EEF0]">Other integrations</h3><p className="mt-1 text-xs text-[#C2B4B9]">These connections are not active until their secure authorization and data sync are implemented.</p></div></div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-[#1E1E3A] p-4"><div><p className="text-sm font-semibold text-[#F5EEF0]">Klaviyo</p><p className="mt-1 text-xs text-[#8A7A81]">No verified connection or live campaign data is available.</p></div><span className="rounded-full bg-slate-400/10 px-2.5 py-1 text-[10px] font-semibold text-[#BCA8AE]">Not connected</span></div>
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-[#1E1E3A] p-4"><div><p className="text-sm font-semibold text-[#F5EEF0]">Meta</p><p className="mt-1 text-xs text-[#8A7A81]">Meta OAuth and reporting are not configured in this app yet.</p></div><span className="rounded-full bg-slate-400/10 px-2.5 py-1 text-[10px] font-semibold text-[#BCA8AE]">Not connected</span></div>
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-[#1E1E3A] p-4"><div><p className="text-sm font-semibold text-[#F5EEF0]">AI services</p><p className="mt-1 text-xs text-[#8A7A81]">Configured by the app server; availability is not verified from this screen.</p></div><span className="rounded-full bg-slate-400/10 px-2.5 py-1 text-[10px] font-semibold text-[#BCA8AE]">Server managed</span></div>
               </div>
             </section>
-            <button onClick={handleSaveApiKeys} disabled={isSaveDisabled}
-              className="flex items-center gap-2.5 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white transition-all shadow-xl hover:shadow-[#C9747A]/20 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto justify-center"
-              style={{ background: savingKeys ? 'linear-gradient(135deg, #6B5560, #4A3A48)' : 'linear-gradient(135deg, #C9747A, #8B4A6B)' }}>
-              {savingKeys ? <><Loader2 size={16} className="animate-spin" /> Synchronizing...</> : <><Save size={16} /> Save Integrations</>}
-            </button>
           </motion.div>
         )}
 
