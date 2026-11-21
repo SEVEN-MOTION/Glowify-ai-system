@@ -91,16 +91,10 @@ export const DashboardShell: React.FC<{
         <div className="absolute bottom-[-10%] right-[-10%] h-[30%] w-[30%] rounded-full bg-[#8B4A6B]/10 blur-[100px]" />
       </div>
 
-      {mobileNavOpen && <button type="button" aria-label="Close navigation menu" onClick={() => setMobileNavOpen(false)} className="fixed inset-0 z-30 bg-black/70 md:hidden" />}
+      {mobileNavOpen && <button type="button" aria-label="Close navigation menu" onClick={() => setMobileNavOpen(false)} className="fixed inset-x-0 bottom-0 top-[72px] z-30 bg-black/70 md:hidden" />}
 
-      <aside aria-label="Primary navigation" className={`fixed left-0 top-0 z-40 h-[100dvh] w-[min(280px,86vw)] md:w-[76px] md:hover:w-[280px] md:focus-within:w-[280px] overflow-hidden flex-col border-r border-[#1E1E3A] bg-[#080608] transition-[width,transform] duration-200 motion-reduce:transition-none ${mobileNavOpen ? 'flex translate-x-0' : 'hidden md:flex md:translate-x-0'}`}>
-        <div className="flex items-center justify-between border-b border-[#1E1E3A] px-6 pb-5 pt-6">
-          <button type="button" onClick={() => navigate('overview')} aria-label="Glowify AI home" className="flex items-center gap-3 rounded-lg text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A0A3]">
-            <img src="/glowify-mark.svg" alt="" className="h-[42px] w-[42px] shrink-0" />
-            <span><span className="block text-[18px] font-black tracking-[-0.03em] text-[#F5EEF0]">GLOWIFY<span className="text-[#C9747A]">AI</span></span></span>
-          </button>
-          <button type="button" onClick={() => setMobileNavOpen(false)} aria-label="Close navigation" className="rounded-lg p-2 text-[#C2B4B9] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3] md:hidden"><X size={18} /></button>
-        </div>
+      <aside aria-label="Primary navigation" className={`fixed left-0 top-[72px] z-40 h-[calc(100dvh-72px)] w-[min(280px,86vw)] md:w-[76px] md:hover:w-[280px] md:focus-within:w-[280px] overflow-hidden flex-col border-r border-[#1E1E3A] bg-[#080608] transition-[width,transform] duration-200 motion-reduce:transition-none ${mobileNavOpen ? 'flex translate-x-0' : 'hidden md:flex md:translate-x-0'}`}>
+        <div className="hidden h-2 md:block" />
 
         <nav aria-label="Dashboard sections" className="flex-1 space-y-1 overflow-y-auto px-4 py-4">
           <p className="mb-3 px-4 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#C2B4B9]">Navigation</p>
@@ -112,10 +106,11 @@ export const DashboardShell: React.FC<{
         </div>
       </aside>
 
-      <div className="flex min-h-screen flex-col md:ml-[76px]">
-        <header className="sticky top-0 z-20 flex min-h-[72px] items-center justify-between gap-2 border-b border-[#1E1E3A] bg-[#0a0a0b]/95 px-3 backdrop-blur-xl sm:px-5 lg:px-6">
+      <div className="flex min-h-screen flex-col pt-[72px] md:ml-[76px]">
+        <header className="fixed inset-x-0 top-0 z-50 flex min-h-[72px] items-center justify-between gap-2 border-b border-[#1E1E3A] bg-[#0a0a0b]/95 px-3 backdrop-blur-xl sm:px-5 lg:px-6">
           <div className="flex min-w-0 items-center gap-2 sm:gap-4">
             <button type="button" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation menu" aria-expanded={mobileNavOpen} className="rounded-lg p-2 text-[#F1F1F8] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3] md:hidden"><Menu size={20} /></button>
+            <button type="button" onClick={() => navigate('overview')} aria-label="Glowify AI home" className="flex shrink-0 items-center gap-2 rounded-lg text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3]"><img src="/glowify-mark.svg" alt="" className="h-9 w-9" /><span className="hidden text-sm font-black tracking-tight text-[#F5EEF0] sm:inline">GLOWIFY<span className="text-[#C9747A]"> AI</span></span></button>
             <StoreSummary store={store} onOpenSettings={() => navigate('settings')} />
             <span className="hidden rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold text-amber-200 sm:inline-flex">Sample data</span>
           </div>
