@@ -101,7 +101,7 @@ export const OverviewPreview: React.FC<{ onNavigate: (tab: string) => void }> = 
   }, [user, selectedStore]);
 
   const connected = overview?.status === 'connected' && Boolean(overview.summary);
-  const sampleMode = !loading && !loadError && overview?.status === 'not_connected';
+  const sampleMode = !connected;
   const liveMetrics = connected && overview.summary ? [
     { label: 'Paid sales', value: formatMoney(overview.summary.paidSalesTotal, overview.summary.currency), change: '', note: overview.summary.historyComplete ? 'paid orders · last 30 days' : 'history is incomplete', icon: TrendingUp },
     { label: 'Paid orders', value: overview.summary.paidOrderCount?.toLocaleString() ?? '—', change: '', note: 'last 30 days', icon: ShoppingBag },
