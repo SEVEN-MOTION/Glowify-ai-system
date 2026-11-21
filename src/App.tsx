@@ -16,6 +16,7 @@ import { DataProvider } from './contexts/DataContext';
 import { AuthScreen } from './components/AuthScreen';
 import { DashboardShell } from './components/DashboardShell';
 import { TechBackground } from './components/CommonUI';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // ─── Premium Auth Loading Screen ─────────────────────────────────────────
 const AuthLoadingScreen: React.FC = () => (
@@ -237,6 +238,7 @@ const AppShell: React.FC = () => {
 
 export default function App() {
   return (
+    <ThemeProvider>
     <MotionConfig reducedMotion="user">
       <AuthProvider>
         <DashboardProvider>
@@ -246,5 +248,6 @@ export default function App() {
         </DashboardProvider>
       </AuthProvider>
     </MotionConfig>
+    </ThemeProvider>
   );
 }
