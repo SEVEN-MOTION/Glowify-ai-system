@@ -1,6 +1,6 @@
 // src/App.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Bell, Zap, Package, Menu, X, ChevronRight, Activity, LogOut, Loader2 } from 'lucide-react';
+import { Search, Bell, Package, Menu, X, ChevronRight, Activity, LogOut, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { OverviewView, AnalyticsView } from './components/DashboardViews';
 import { AIAgentsView } from './components/views/AIAgentsView';
@@ -52,7 +52,7 @@ const AuthLoadingScreen: React.FC = () => (
             boxShadow: '0 0 60px rgba(201,116,122,0.5), 0 0 120px rgba(201,116,122,0.3)'
           }}
         >
-          <Zap size={40} className="text-white fill-white" />
+          <img src="/glowify-mark.svg" alt="" className="h-10 w-10" />
         </div>
       </motion.div>
       
