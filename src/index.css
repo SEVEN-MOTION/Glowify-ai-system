@@ -183,3 +183,18 @@ body {
   color: var(--glw-light-ink) !important;
   border-color: var(--glw-light-border) !important;
 }
+
+:root[data-theme="light"] [class*="text-[#F1E8D5]"],
+:root[data-theme="light"] [class~="text-amber-100"],
+:root[data-theme="light"] [class~="text-amber-200"],
+:root[data-theme="light"] [class~="text-amber-300"],
+:root[data-theme="light"] [class~="text-yellow-200"],
+:root[data-theme="light"] [class~="text-yellow-300"] { color: #6b5018 !important; }
+:root[data-theme="light"] [class~="text-emerald-200"],
+:root[data-theme="light"] [class~="text-emerald-300"],
+:root[data-theme="light"] [class~="text-green-200"],
+:root[data-theme="light"] [class~="text-green-300"] { color: #246342 !important; }
+:root[data-theme="light"] [class~="text-red-200"],
+:root[data-theme="light"] [class~="text-red-300"] { color: #9b3039 !important; }
+:root[data-theme="light"] [class~="text-blue-200"],
+:root[data-theme="light"] [class~="text-blue-300"] { color: #315d92 !important; }
