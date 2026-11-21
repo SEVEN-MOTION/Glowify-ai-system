@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   BarChart2, Bell, Bot, ChevronDown, LayoutDashboard, LogOut, Megaphone,
-  Menu, Package, Settings, Store, Users, X, Zap,
+  Menu, Moon, Package, Settings, Store, Sun, Users, X, Zap,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 import { getSavedStoreDetails } from '../utils/stores';
 import { NotificationCenter } from './NotificationCenter';
+import { useTheme } from '../contexts/ThemeContext';
 
 type IconComponent = React.ComponentType<{ size?: number; className?: string }>;
 
@@ -68,6 +69,7 @@ export const DashboardShell: React.FC<{
   setActiveTab: (tab: string) => void;
 }> = ({ children, activeTab, setActiveTab }) => {
   const { user, profile, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const { notifications, markNotificationRead, clearNotifications } = useData();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -119,7 +121,17 @@ export const DashboardShell: React.FC<{
           </div>
 
           <div className="flex shrink-0 items-center gap-1 sm:gap-3">
-            <button type="button" onClick={() => setNotificationsOpen(true)} aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`} aria-expanded={notificationsOpen} className="relative rounded-xl p-2.5 text-[#D1C6CB] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3]">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              aria-pressed={theme === 'dark'}
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              className="rounded-xl p-2.5 text-[#D1C6CB] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A0A3]"
+            >
+              {theme === 'dark' ? <Sun size={19} aria-hidden="true" /> : <Moon size={19} aria-hidden="true" />}
+            </button>
+            <button type="button" onClick={() => setNotificationsOpen(true) aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`} aria-expanded={notificationsOpen} className="relative rounded-xl p-2.5 text-[#D1C6CB] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3]">
               <Bell size={19} aria-hidden="true" />
               {unreadCount > 0 && <span aria-hidden="true" className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C9747A] px-1 text-[10px] font-bold text-white">{unreadCount}</span>}
             </button>
