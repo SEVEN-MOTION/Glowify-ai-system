@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
+  <defs>
+    <linearGradient id="glowify" x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C68188"/>
+      <stop offset="1" stop-color="#8A5368"/>
+    </linearGradient>
+  </defs>
+  <rect width="40" height="40" rx="12" fill="url(#glowify)"/>
+  <path d="M29.4 12.3a11 11 0 1 0 1.1 11.1h-8.2v-4.3h12.1v2.5c0 8-6.2 13.2-14.1 13.2A14.8 14.8 0 1 1 31.5 9.6" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M29.3 5.8v5.8m-2.9-2.9h5.8" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+</svg>
