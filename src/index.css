@@ -94,3 +94,92 @@ body {
 .glw-app-container {
   font-family: var(--font-sans);
 }
+
+/* User-selectable light theme for the existing dark-first interface. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --glw-light-page: #f6f5f7;
+  --glw-light-surface: #ffffff;
+  --glw-light-subtle: #f2eff3;
+  --glw-light-border: #e5e0e6;
+  --glw-light-ink: #2c2730;
+  --glw-light-muted: #625b66;
+  --glw-light-soft: #807985;
+  background-color: var(--glw-light-page) !important;
+  color: var(--glw-light-ink) !important;
+}
+:root[data-theme="light"] body { background: var(--glw-light-page) !important; color: var(--glw-light-ink) !important; }
+:root[data-theme="light"] [class*="bg-[#080608]"],
+:root[data-theme="light"] [class*="bg-[#0a0a0b]"],
+:root[data-theme="light"] [class*="bg-[#0F0F1E]"],
+:root[data-theme="light"] [class*="bg-[#0D0D1A]"],
+:root[data-theme="light"] [class*="bg-[#100D10]"],
+:root[data-theme="light"] [class*="bg-[#140F14]"],
+:root[data-theme="light"] [class*="bg-[#0C0A0C]"],
+:root[data-theme="light"] [class*="bg-[#1A1218]"],
+:root[data-theme="light"] [class*="bg-[#231820]"],
+:root[data-theme="light"] [class*="bg-[#1E1E3A]"],
+:root[data-theme="light"] [class*="bg-[#3D3D55]"] {
+  background-color: var(--glw-light-surface) !important;
+}
+:root[data-theme="light"] [class*="border-[#1E1E3A]"],
+:root[data-theme="light"] [class*="border-[#231820]"],
+:root[data-theme="light"] [class*="border-[#1A1218]"],
+:root[data-theme="light"] [class*="border-[#3A2530]"],
+:root[data-theme="light"] [class*="border-white/5"],
+:root[data-theme="light"] [class*="border-white/10"] {
+  border-color: var(--glw-light-border) !important;
+}
+:root[data-theme="light"] [class*="text-[#F5EEF0]"],
+:root[data-theme="light"] [class*="text-[#F1F1F8]"],
+:root[data-theme="light"] [class*="text-[#C2B4B9]"],
+:root[data-theme="light"] [class*="text-[#D1C6CB]"],
+:root[data-theme="light"] [class*="text-[#B09AA0]"],
+:root[data-theme="light"] [class*="text-[#6B5560]"],
+:root[data-theme="light"] [class*="text-[#6B6B88]"],
+:root[data-theme="light"] [class*="text-[#3D2B32]"],
+:root[data-theme="light"] [class*="text-[#3D3D55]"],
+:root[data-theme="light"] [class~="text-neutral-200"],
+:root[data-theme="light"] [class~="text-neutral-300"],
+:root[data-theme="light"] [class~="text-neutral-400"],
+:root[data-theme="light"] [class~="text-neutral-500"],
+:root[data-theme="light"] [class~="text-neutral-600"] {
+  color: var(--glw-light-muted) !important;
+}
+:root[data-theme="light"] [class*="text-white"] { color: var(--glw-light-ink) !important; }
+:root[data-theme="light"] [class*="bg-gradient-to-br"][class*="from-[#C9747A]"] [class*="text-white"],
+:root[data-theme="light"] [class*="bg-[#C9747A]"] [class*="text-white"],
+:root[data-theme="light"] [class*="bg-[#C9747A]/"] [class*="text-white"],
+:root[data-theme="light"] [class*="bg-emerald-"] [class*="text-white"],
+:root[data-theme="light"] [class*="bg-red-"] [class*="text-white"] {
+  color: #ffffff !important;
+}
+:root[data-theme="light"] [class*="bg-white/5"]:hover { background-color: #f1edf1 !important; }
+:root[data-theme="light"] [style*="#0F0F1E"],
+:root[data-theme="light"] [style*="15, 15, 30"],
+:root[data-theme="light"] [style*="#0D0D1A"],
+:root[data-theme="light"] [style*="13, 13, 26"] {
+  background: linear-gradient(135deg, #ffffff 0%, #faf8fa 100%) !important;
+  border-color: var(--glw-light-border) !important;
+}
+:root[data-theme="light"] [style*="#1E1E3A"],
+:root[data-theme="light"] [style*="30, 30, 58"] {
+  background-color: var(--glw-light-subtle) !important;
+  border-color: var(--glw-light-border) !important;
+}
+:root[data-theme="light"] .glw-skeleton {
+  background: linear-gradient(90deg, #f3f0f3 25%, #e7e2e8 50%, #f3f0f3 75%);
+  background-size: 200% 100%;
+}
+:root[data-theme="light"] .recharts-cartesian-grid line { stroke: #e4dfe5 !important; }
+:root[data-theme="light"] .recharts-cartesian-axis-tick-value { fill: #6d6671 !important; }
+:root[data-theme="light"] .glw-card:hover { box-shadow: 0 10px 28px rgba(45, 35, 48, 0.12); }
+:root[data-theme="light"] [class*="shadow-2xl"],
+:root[data-theme="light"] [class*="shadow-xl"] { box-shadow: 0 2px 10px rgba(45, 35, 48, 0.08) !important; }
+:root[data-theme="light"] input,
+:root[data-theme="light"] select,
+:root[data-theme="light"] textarea {
+  background-color: #ffffff !important;
+  color: var(--glw-light-ink) !important;
+  border-color: var(--glw-light-border) !important;
+}
