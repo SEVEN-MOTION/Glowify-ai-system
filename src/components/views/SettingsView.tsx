@@ -1,47 +1,47 @@
+Warning: truncated output (original token count: 11147)
+Total output lines: 723
+
 // src/components/views/SettingsView.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Store, Lock, Plug, CreditCard, Eye, EyeOff, CheckCircle, AlertCircle, Save, Zap, Loader2, LogOut, X, Sparkles, MessageSquare, Activity, ChevronDown, Plus, RefreshCw } from 'lucide-react';
+import { User, Store, Lock, Plug, CreditCard, Eye, EyeOff, CheckCircle, AlertCircle, Save, Loader2, LogOut, X, Sparkles, MessageSquare, RefreshCw, Bell, SlidersHorizontal } from 'lucide-react';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { db, firestoreHelpers } from '../../lib/firebase';
+import { db } from '../../lib/firebase';
 import { updateProfile, linkWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth';
 import { useAuth } from '../../contexts/AuthContext';
+import { getSavedStoreDetails } from '../../utils/stores';
 
 // Shopify domain validation regex
 const SHOPIFY_DOMAIN_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9]\.myshopify\.com$/;
 
-// Mock connected stores
-const MOCK_STORES = [
-  { id: 'store-1', name: 'NEUROZEN LAB', domain: 'neurozen-lab.myshopify.com', isDefault: true },
-  { id: 'store-2', name: 'BrandAlpha', domain: 'brand-alpha.myshopify.com', isDefault: false },
-  { id: 'store-3', name: 'BrandBeta', domain: 'brand-beta.myshopify.com', isDefault: false },
-];
-
 // Integration status with animated indicators
-const IntegrationStatus: React.FC<{ status: 'connected' | 'pending' | 'disconnected' }> = ({ status }) => {
-  if (status === 'connected') {
+type IntegrationState = 'verified' | 'configured' | 'checking' | 'failed' | 'not_configured';
+
+const IntegrationStatus: React.FC<{ status: IntegrationState }> = ({ status }) => {
+  if (status === 'verified') {
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/30">
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10B981]"></span>
         </span>
-        Connected
+        Verified
       </span>
     );
   }
-  if (status === 'pending') {
+  if (status === 'checking') {
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-dashed border-amber-500/30">
         <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-        Pending
+        Checking
       </span>
     );
   }
+  if (status === 'configured') return <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/30 bg-amber-300/10 px-2.5 py-1 text-[10px] font-bold text-amber-100">Configured · not verified</span>;
+  if (status === 'failed') return <span className="inline-flex items-center gap-1.5 rounded-full border border-red-300/30 bg-red-300/10 px-2.5 py-1 text-[10px] font-bold text-red-200">Verification failed</span>;
   return (
     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#6B5560]/10 text-[#6B5560] border border-[#6B5560]/20">
-      <span className="w-2 h-2 rounded-full bg-[#6B5560]"></span>
-      Disconnected
+      Not configured
     </span>
   );
 };
@@ -55,6 +55,7 @@ const Toast: React.FC<{ message: string; type: 'success' | 'error'; onClose: () 
 
   return (
     <motion.div
+      role={type === 'error' ? 'alert' : 'status'}
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -64,7 +65,7 @@ const Toast: React.FC<{ message: string; type: 'success' | 'error'; onClose: () 
     >
       {type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
       <span className="text-sm font-bold">{message}</span>
-      <button onClick={onClose} className="ml-2 hover:opacity-70 transition-opacity"><X size={16} /></button>
+        <button type="button" aria-label="Dismiss notification" onClick={onClose} className="ml-2 hover:opacity-70 transition-opacity"><X size={16} /></button>
     </motion.div>
   );
 };
@@ -72,12 +73,12 @@ const Toast: React.FC<{ message: string; type: 'success' | 'error'; onClose: () 
 // Unsaved changes confirmation dialog
 const UnsavedDialog: React.FC<{ onSave: () => void; onDiscard: () => void; onCancel: () => void }> = ({ onSave, onDiscard, onCancel }) => (
   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-[#0F0F1E] border border-[#1E1E3A] rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
+    <motion.div role="alertdialog" aria-modal="true" aria-labelledby="unsaved-title" aria-describedby="unsaved-description" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-[#0F0F1E] border border-[#1E1E3A] rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center"><AlertCircle size={24} className="text-amber-500" /></div>
-        <h3 className="text-lg font-bold text-white">Unsaved Changes</h3>
+        <h3 id="unsaved-title" className="text-lg font-bold text-white">Unsaved Changes</h3>
       </div>
-      <p className="text-sm text-[#6B6B88] mb-6">You have unsaved changes. Are you sure you want to leave? Your changes will be lost.</p>
+      <p id="unsaved-description" className="text-sm text-[#B09AA0] mb-6">You have unsaved changes. Are you sure you want to leave? Your changes will be lost.</p>
       <div className="flex gap-3">
         <button onClick={onCancel} className="flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-[#6B6B88] border border-[#1E1E3A] hover:bg-white/5 transition-all">Cancel</button>
         <button onClick={onDiscard} className="flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-white bg-[#1E1E3A] hover:bg-[#2A2A48] transition-all">Discard</button>
@@ -104,7 +105,7 @@ const ApiKeyField: React.FC<{
   onChange: (v: string) => void;
   icon: React.ReactNode;
   accentColor: string;
-  status: 'connected' | 'pending' | 'disconnected';
+  status: IntegrationState;
   isLoading?: boolean;
   onTestConnection: () => void;
   isTesting?: boolean;
@@ -132,13 +133,15 @@ const ApiKeyField: React.FC<{
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-bold text-[#F1F1F8]">{label}</p>
+              <label htmlFor={`${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-credential`} className="text-sm font-bold text-[#F1F1F8]">{label}</label>
               <IntegrationStatus status={status} />
             </div>
             <p className="text-xs text-[#6B6B88] mt-0.5 leading-relaxed">{description}</p>
           </div>
         </div>
         <button
+          type="button"
+          aria-label={`Test ${label} connection`}
           onClick={onTestConnection}
           disabled={isTesting || !value}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-30"
@@ -149,10 +152,10 @@ const ApiKeyField: React.FC<{
         </button>
       </div>
       <div className="relative">
-        <input type={show ? 'text' : 'password'} placeholder={placeholder} value={value}
+        <input id={`${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-credential`} type={show ? 'text' : 'password'} placeholder={placeholder} value={value}
           onChange={e => onChange(e.target.value)}
           className="w-full bg-[#07070F] border border-[#1E1E3A] rounded-xl px-4 py-3 pr-11 text-sm text-[#F1F1F8] placeholder:text-[#3D3D55] font-mono focus:outline-none focus:border-[#C9747A]/50 transition-all" />
-        <button type="button" onClick={() => setShow(!show)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#3D3D55] hover:text-[#A0A0B8] transition-colors p-1">
+        <button type="button" aria-label={`${show ? 'Hide' : 'Show'} ${label}`} onClick={() => setShow(!show)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#3D3D55] hover:text-[#A0A0B8] transition-colors p-1">
           {show ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
       </div>
@@ -160,92 +163,7 @@ const ApiKeyField: React.FC<{
   );
 };
 
-// Multi-Store Dropdown
-const StoreSelector: React.FC<{
-  stores: typeof MOCK_STORES;
-  selectedStore: string;
-  onSelect: (id: string) => void;
-  onAddStore: () => void;
-}> = ({ stores, selectedStore, onSelect, onAddStore }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const selected = stores.find(s => s.id === selectedStore) || stores[0];
-
-  return (
-    <div className="relative">
-      <label className="text-[10px] font-black text-[#6B6B88] uppercase tracking-widest ml-1 mb-2 block">Connected Stores</label>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between bg-[#07070F] border border-[#1E1E3A] rounded-xl px-4 py-3.5 text-left hover:border-[#2A2A48] transition-all"
-      >
-        <div className="flex items-center gap-3">
-          <Store size={16} className="text-[#10B981]" />
-          <div>
-            <p className="text-sm font-bold text-[#F1F1F8]">{selected.name}</p>
-            <p className="text-[10px] text-[#6B6B88]">{selected.domain}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {selected.isDefault && <span className="text-[10px] px-2 py-0.5 rounded bg-[#10B981]/10 text-[#10B981] font-bold">Default</span>}
-          <ChevronDown size={16} className={`text-[#6B6B88] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-        </div>
-      </button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute top-full left-0 right-0 mt-2 bg-[#0F0F1E] border border-[#1E1E3A] rounded-xl overflow-hidden shadow-2xl z-50"
-          >
-            {stores.map(store => (
-              <button
-                key={store.id}
-                onClick={() => { onSelect(store.id); setIsOpen(false); }}
-                className={`w-full flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors ${store.id === selectedStore ? 'bg-white/5' : ''}`}
-              >
-                <div className="flex items-center gap-3">
-                  <Store size={16} className="text-[#10B981]" />
-                  <div className="text-left">
-                    <p className="text-sm font-bold text-[#F1F1F8]">{store.name}</p>
-                    <p className="text-[10px] text-[#6B6B88]">{store.domain}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {store.isDefault && <span className="text-[10px] px-2 py-0.5 rounded bg-[#10B981]/10 text-[#10B981] font-bold">Default</span>}
-                  {store.id === selectedStore && <CheckCircle size={16} className="text-[#10B981]" />}
-                </div>
-              </button>
-            ))}
-            <div className="border-t border-[#1E1E3A] p-2">
-              <button onClick={onAddStore} className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-[#C9747A] hover:bg-[#C9747A]/10 transition-all">
-                <Plus size={14} /> Add New Store
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-// Usage bar for billing
-const UsageBar: React.FC<{ label: string; used: number; total: number; unit: string; color: string }> = ({ label, used, total, unit, color }) => {
-  const percentage = Math.min((used / total) * 100, 100);
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between items-center">
-        <span className="text-xs font-medium text-[#6B6B88]">{label}</span>
-        <span className="text-xs font-bold text-[#F1F1F8]">{used.toLocaleString()} / {total.toLocaleString()} {unit}</span>
-      </div>
-      <div className="h-2 bg-[#0F0F1E] rounded-full overflow-hidden">
-        <motion.div initial={{ width: 0 }} animate={{ width: `${percentage}%` }} transition={{ duration: 0.8, ease: 'easeOut' }} className="h-full rounded-full" style={{ background: color }} />
-      </div>
-    </div>
-  );
-};
-
-type TabId = 'profile' | 'integrations' | 'billing';
+type TabId = 'profile' | 'integrations' | 'notifications' | 'preferences' | 'billing';
 
 export const SettingsView: React.FC = () => {
   const { user, profile, refreshProfile, signOut } = useAuth();
@@ -255,8 +173,6 @@ export const SettingsView: React.FC = () => {
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [pendingTab, setPendingTab] = useState<TabId | null>(null);
   const [testingConnections, setTestingConnections] = useState<Record<string, boolean>>({});
-  const [selectedStore, setSelectedStore] = useState(MOCK_STORES[0].id);
-  const [stores, setStores] = useState(MOCK_STORES);
 
   const [originalValues, setOriginalValues] = useState({
     displayName: '', storeName: '', shopifyApiKey: '', shopifyStoreDomain: '', klaviyoApiKey: '', geminiApiKey: ''
@@ -281,10 +197,10 @@ export const SettingsView: React.FC = () => {
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   
   // Connection status state for each integration (dynamically updated after test)
-  const [connectionStatus, setConnectionStatus] = useState<Record<string, 'connected' | 'pending' | 'disconnected'>>({
-    shopify: 'disconnected',
-    klaviyo: 'disconnected',
-    gemini: 'disconnected'
+  const [connectionStatus, setConnectionStatus] = useState<Record<string, IntegrationState>>({
+    shopify: 'not_configured',
+    klaviyo: 'not_configured',
+    gemini: 'not_configured'
   });
 
   const isDirty = displayName !== originalValues.displayName || storeName !== originalValues.storeName || shopifyApiKey !== originalValues.shopifyApiKey || shopifyStoreDomain !== originalValues.shopifyStoreDomain || klaviyoApiKey !== originalValues.klaviyoApiKey || geminiApiKey !== originalValues.geminiApiKey;
@@ -331,7 +247,7 @@ export const SettingsView: React.FC = () => {
 
     const checkUserProvider = () => {
       if (user) {
-        if (user.providerData.some(p => p.providerId === 'password')) {
+        if (user.providerData?.some(p => p?.providerId === 'password')) {
           setPasswordAlreadySet(true);
         }
       }
@@ -371,9 +287,9 @@ export const SettingsView: React.FC = () => {
       
       // Update connection status based on saved API keys
       setConnectionStatus({
-        shopify: values.shopifyApiKey && values.shopifyApiKey.length > 0 ? 'connected' : 'disconnected',
-        klaviyo: values.klaviyoApiKey && values.klaviyoApiKey.length > 0 ? 'connected' : 'disconnected',
-        gemini: values.geminiApiKey && values.geminiApiKey.length > 0 ? 'connected' : 'disconnected'
+        shopify: values.shopifyApiKey || values.shopifyStoreDomain ? 'configured' : 'not_configured',
+        klaviyo: values.klaviyoApiKey ? 'configured' : 'not_configured',
+        gemini: values.geminiApiKey ? 'configured' : 'not_configured'
       });
     }
   }, [profile]);
@@ -483,162 +399,33 @@ export const SettingsView: React.FC = () => {
         
         // Update connection status based on saved keys
         setConnectionStatus({
-          shopify: shopifyApiKey ? 'connected' : 'disconnected',
-          klaviyo: klaviyoApiKey ? 'connected' : 'disconnected',
-          gemini: geminiApiKey ? 'connected' : 'disconnected'
+          shopify: shopifyApiKey || shopifyStoreDomain ? 'configured' : 'not_configured',
+          klaviyo: klaviyoApiKey ? 'configured' : 'not_configured',
+          gemini: geminiApiKey ? 'configured' : 'not_configured'
         });
         
         setToast({ message: 'Integrations saved successfully', type: 'success' });
       } else {
-        // API returned error
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to save settings');
+        const errorData: unknown = await response.json().catch(() => null);
+        const message = errorData && typeof errorData === 'object' && 'error' in errorData && typeof errorData.error === 'string'
+          ? errorData.error
+          : 'Failed to save settings';
+        throw new Error(message);
       }
-    } catch (error: any) {
-      console.error('Save error:', error);
-      // Fall back to direct Firestore write
-      try {
-        await setDoc(doc(db, 'users', user.uid), {
-          shopifyApiKey,
-          shopifyStoreDomain,
-          klaviyoApiKey,
-          geminiApiKey,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
-        await refreshProfile();
-        setOriginalValues(prev => ({
-          ...prev,
-          shopifyApiKey,
-          shopifyStoreDomain,
-          klaviyoApiKey,
-          geminiApiKey
-        }));
-        setToast({ message: 'Integrations saved successfully', type: 'success' });
-      } catch (dbError) {
-        console.error('Firestore save error:', dbError);
-        setToast({ message: error.message || 'Failed to save integrations', type: 'error' });
-        setSavingKeys(false);
-        return;
-      }
-    }
-
-    setSavingKeys(false);
-  };
-
-  const handleTestConnection = async (type: 'shopify' | 'klaviyo' | 'gemini') => {
-    setTestingConnections(prev => ({ ...prev, [type]: true }));
-    
-    try {
-      // Determine which test type to send to the API
-      let testType: 'shopify' | 'klaviyo' | 'gemini' | 'shopify_domain' = type;
-      if (type === 'shopify' && !shopifyApiKey && shopifyStoreDomain) {
-        testType = 'shopify_domain';
-      }
-
-      // Call the secure test connection API endpoint
-      const response = await fetch('/api/settings/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          uid: user?.uid,
-          type: testType,
-          shopifyApiKey,
-          shopifyStoreDomain,
-          klaviyoApiKey,
-          geminiApiKey
-        })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        
-        // Handle response and trigger appropriate toast state
-        if (result.success) {
-          // Update connection status to 'connected'
-          setConnectionStatus(prev => ({ ...prev, [type]: 'connected' }));
-          setToast({ 
-            message: `${type.charAt(0).toUpperCase() + type.slice(1)} connection verified!`, 
-            type: 'success' 
-          });
-        } else {
-          // Update connection status to 'disconnected'
-          setConnectionStatus(prev => ({ ...prev, [type]: 'disconnected' }));
-          setToast({ 
-            message: result.message || `${type.charAt(0).toUpperCase() + type.slice(1)} connection failed`, 
-            type: 'error' 
-          });
-        }
-      } else {
-        // API not available - use mock verification as fallback
-        await mockVerifyConnection(type);
-      }
-    } catch (error) {
-      console.warn('API test failed, using mock verification:', error);
-      // Use mock verification as fallback for development/when API unavailable
-      await mockVerifyConnection(type);
-    } finally {
-      setTestingConnections(prev => ({ ...prev, [type]: false }));
-    }
-  };
-
-  // Mock verification fallback when API is unavailable
-  const mockVerifyConnection = async (type: 'shopify' | 'klaviyo' | 'gemini') => {
-    // Simulate network latency for realistic UX
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    let isValid = false;
-    
-    switch (type) {
-      case 'shopify':
-        isValid = (shopifyApiKey.startsWith('shpat_') || shopifyApiKey.startsWith('shpatla_')) &&
-                  /^[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9]\.myshopify\.com$/.test(shopifyStoreDomain);
-        break;
-      case 'klaviyo':
-        isValid = klaviyoApiKey.startsWith('pk_');
-        break;
-      case 'gemini':
-        isValid = geminiApiKey.startsWith('AIza');
-        break;
-    }
-    
-    if (isValid) {
-      setConnectionStatus(prev => ({ ...prev, [type]: 'connected' }));
-      setToast({ 
-        message: `${type.charAt(0).toUpperCase() + type.slice(1)} connection verified!`, 
-        type: 'success' 
-      });
-    } else {
-      setConnectionStatus(prev => ({ ...prev, [type]: 'disconnected' }));
-      setToast({ 
-        message: `Invalid ${type} credentials format`, 
-        type: 'error' 
-      });
-    }
-  };
-
-  const handleAddStore = () => {
-    setToast({ message: 'Add store feature coming soon', type: 'success' });
-  };
-
-  const getStatus = (key: string) => key && key.length > 0 ? 'connected' : 'disconnected';
-  const isSaveDisabled = !validateShopifyDomain(shopifyStoreDomain) || savingKeys;
-
-  const tabs = [
-    { id: 'profile' as TabId, label: 'Account', icon: <User size={16} /> },
-    { id: 'integrations' as TabId, label: 'Integrations', icon: <Plug size={16} /> },
-    { id: 'billing' as TabId, label: 'Billing', icon: <CreditCard size={16} /> },
-  ];
-
-  return (
-    <div className="space-y-6">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      {showUnsavedDialog && <UnsavedDialog onSave={handleSaveAndSwitch} onDiscard={handleDiscardAndSwitch} onCancel={handleCancelDialog} />}
-
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    } catch (error: unknown) {
+     …1147 tokens truncated…="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div><h2 className="text-2xl font-black text-white">Settings</h2><p className="text-sm text-[#6B6B88] mt-1">Manage your Glowify AI account</p></div>
-        <div className="flex items-center gap-1 bg-[#0F0F1E] p-1 rounded-2xl border border-[#1E1E3A]">
+        <div role="tablist" aria-label="Settings sections" className="flex flex-wrap items-center gap-1 bg-[#0F0F1E] p-1 rounded-2xl border border-[#1E1E3A]">
           {tabs.map(tab => (
-            <button key={tab.id} onClick={() => handleTabChange(tab.id)}
+            <button key={tab.id} id={`settings-tab-${tab.id}`} type="button" role="tab" aria-label={tab.label} aria-controls={`settings-panel-${tab.id}`} aria-selected={activeTab === tab.id} tabIndex={activeTab === tab.id ? 0 : -1} onKeyDown={event => {
+              if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+                event.preventDefault();
+                const direction = event.key === 'ArrowRight' ? 1 : -1;
+                const nextIndex = (tabs.findIndex(item => item.id === tab.id) + direction + tabs.length) % tabs.length;
+                document.getElementById(`settings-tab-${tabs[nextIndex].id}`)?.focus();
+                handleTabChange(tabs[nextIndex].id);
+              }
+            }} onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${activeTab === tab.id ? 'bg-[#C9747A] text-white shadow-lg' : 'text-[#6B6B88] hover:text-white hover:bg-white/5'}`}>
               {tab.icon}<span className="hidden sm:inline">{tab.label}</span>
             </button>
@@ -648,7 +435,7 @@ export const SettingsView: React.FC = () => {
 
       <AnimatePresence mode="wait">
         {activeTab === 'profile' && (
-          <motion.div key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+          <motion.div id="settings-panel-profile" role="tabpanel" aria-labelledby="settings-tab-profile" key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
             <section className="bg-[#0F0F1E] border border-[#1E1E3A] rounded-[24px] p-6">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-[#C9747A]/10 flex items-center justify-center"><User size={24} className="text-[#C9747A]" /></div>
@@ -660,16 +447,27 @@ export const SettingsView: React.FC = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-[#6B6B88] uppercase tracking-widest ml-1">Display Name</label>
-                      <input type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your name"
+                      <label htmlFor="settings-display-name" className="text-[10px] font-black text-[#C2B4B9] uppercase tracking-widest ml-1">Display Name</label>
+                      <input id="settings-display-name" type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your name"
                         className="w-full bg-[#07070F] border border-[#1E1E3A] rounded-xl px-4 py-3.5 text-sm text-[#F1F1F8] placeholder:text-[#3D3D55] focus:outline-none focus:border-[#C9747A]/50 transition-all" />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-[#6B6B88] uppercase tracking-widest ml-1">Email</label>
-                      <input type="email" value={user?.email || ''} disabled className="w-full bg-[#0A0A14] border border-[#1E1E3A] rounded-xl px-4 py-3.5 text-sm text-[#6B6B88] cursor-not-allowed" />
+                      <label htmlFor="settings-email" className="text-[10px] font-black text-[#C2B4B9] uppercase tracking-widest ml-1">Email</label>
+                      <input id="settings-email" type="email" value={user?.email || ''} disabled className="w-full bg-[#0A0A14] border border-[#1E1E3A] rounded-xl px-4 py-3.5 text-sm text-[#D1C6CB] cursor-not-allowed" />
                     </div>
                   </div>
-                  <StoreSelector stores={stores} selectedStore={selectedStore} onSelect={setSelectedStore} onAddStore={handleAddStore} />
+                  <div className="space-y-1.5">
+                    <label htmlFor="settings-store-name" className="text-[10px] font-black text-[#C2B4B9] uppercase tracking-widest ml-1">Store name</label>
+                    <input id="settings-store-name" type="text" value={storeName} onChange={e => setStoreName(e.target.value)} placeholder="Your store name"
+                      className="w-full rounded-xl border border-[#1E1E3A] bg-[#07070F] px-4 py-3.5 text-sm text-[#F1F1F8] placeholder:text-[#8C7B82] focus:border-[#C9747A]/50 focus:outline-none" />
+                  </div>
+                  <div className="rounded-xl border border-[#1E1E3A] bg-[#080608]/50 p-4" aria-live="polite">
+                    <div className="flex items-start gap-3"><Store size={18} className="mt-0.5 shrink-0 text-[#D4A0A3]" aria-hidden="true" /><div className="min-w-0">
+                      <h4 className="text-sm font-bold text-[#F5EEF0]">Shopify store details</h4>
+                      {profileStore ? <p className="mt-1 break-all text-sm text-[#D1C6CB]">{profileStore.name} · {profileStore.domain}<span className="block text-xs text-amber-100">Saved profile details; OAuth connection status is not available here.</span></p> : <p className="mt-1 text-sm text-[#D1C6CB]">No Shopify domain is saved in this account profile. This screen cannot confirm store connection status.</p>}
+                      <button type="button" onClick={() => handleTabChange('integrations')} className="mt-3 rounded text-sm font-bold text-[#E3A7AA] underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3]">Open store integrations</button>
+                    </div></div>
+                  </div>
                   <button onClick={handleSaveProfile} disabled={savingProfile}
                     className="flex items-center gap-2.5 px-6 py-3.5 rounded-xl font-bold text-xs uppercase tracking-widest text-white transition-all disabled:opacity-50"
                     style={{ background: savingProfile ? '#6B5560' : 'linear-gradient(135deg, #C9747A, #8B4A6B)' }}>
@@ -687,19 +485,19 @@ export const SettingsView: React.FC = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-[#6B6B88] uppercase tracking-widest ml-1">New Password</label>
+                    <label htmlFor="settings-new-password" className="text-[10px] font-black text-[#C2B4B9] uppercase tracking-widest ml-1">New Password</label>
                     <div className="relative">
-                      <input type={showNewPwd ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Min. 8 characters"
+                      <input id="settings-new-password" type={showNewPwd ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Min. 8 characters"
                         className="w-full bg-[#07070F] border border-[#1E1E3A] rounded-xl px-4 py-3.5 pr-11 text-sm text-[#F1F1F8] placeholder:text-[#3D3D55] focus:outline-none focus:border-[#C9747A]/50 transition-all" />
-                      <button onClick={() => setShowNewPwd(!showNewPwd)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#3D3D55] hover:text-[#A0A0B8]">{showNewPwd ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+                      <button type="button" aria-label={`${showNewPwd ? 'Hide' : 'Show'} new password`} onClick={() => setShowNewPwd(!showNewPwd)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#3D3D55] hover:text-[#A0A0B8]">{showNewPwd ? <EyeOff size={16} /> : <Eye size={16} />}</button>
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-[#6B6B88] uppercase tracking-widest ml-1">Confirm Password</label>
+                    <label htmlFor="settings-confirm-password" className="text-[10px] font-black text-[#C2B4B9] uppercase tracking-widest ml-1">Confirm Password</label>
                     <div className="relative">
-                      <input type={showConfPwd ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Repeat password"
+                      <input id="settings-confirm-password" type={showConfPwd ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Repeat password"
                         className="w-full bg-[#07070F] border border-[#1E1E3A] rounded-xl px-4 py-3.5 pr-11 text-sm text-[#F1F1F8] placeholder:text-[#3D3D55] focus:outline-none focus:border-[#C9747A]/50 transition-all" />
-                      <button onClick={() => setShowConfPwd(!showConfPwd)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#3D3D55] hover:text-[#A0A0B8]">{showConfPwd ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+                      <button type="button" aria-label={`${showConfPwd ? 'Hide' : 'Show'} confirmation password`} onClick={() => setShowConfPwd(!showConfPwd)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#3D3D55] hover:text-[#A0A0B8]">{showConfPwd ? <EyeOff size={16} /> : <Eye size={16} />}</button>
                     </div>
                   </div>
                 </div>
@@ -734,11 +532,11 @@ export const SettingsView: React.FC = () => {
         )}
 
         {activeTab === 'integrations' && (
-          <motion.div key="integrations" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+          <motion.div id="settings-panel-integrations" role="tabpanel" aria-labelledby="settings-tab-integrations" key="integrations" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
             <section className="bg-[#0F0F1E] border border-[#1E1E3A] rounded-[24px] p-6">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-[#10B981]/10 flex items-center justify-center"><Plug size={24} className="text-[#10B981]" /></div>
-                <div><h3 className="text-[15px] font-bold text-[#F5EEF0]">Connected Services</h3><p className="text-[11px] text-[#6B5560]">Manage your API keys and integrations</p></div>
+                <div><h3 className="text-[15px] font-bold text-[#F5EEF0]">Integration settings</h3><p className="text-[11px] text-[#C2B4B9]">Manage saved integration credentials. A saved key does not mean the connection is verified.</p></div>
               </div>
               <div className="space-y-4">
                 <ApiKeyField label="Shopify Admin API" description="Connect your Shopify store for product & order sync." placeholder="shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -761,21 +559,22 @@ export const SettingsView: React.FC = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-sm font-bold text-[#F1F1F8]">Shopify Store Domain</p>
-                            <IntegrationStatus status={shopifyStoreDomain ? 'connected' : 'disconnected'} />
+                            <IntegrationStatus status={connectionStatus.shopify} />
                           </div>
                           <p className="text-xs text-[#6B6B88] mt-0.5">Your myshopify.com store URL</p>
                         </div>
                       </div>
-                      <button onClick={() => handleTestConnection('shopify')} disabled={testingConnections.shopify || !shopifyStoreDomain}
+                      <button type="button" aria-label="Test Shopify store domain" onClick={() => handleTestConnection('shopify')} disabled={testingConnections.shopify || !shopifyStoreDomain}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-30"
                         style={{ background: '#10B98115', color: '#10B981', border: '1px solid #10B98125' }}>
                         {testingConnections.shopify ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
                         {testingConnections.shopify ? 'Testing...' : 'Test'}
                       </button>
                     </div>
-                    <input type="text" value={shopifyStoreDomain} onChange={e => handleShopifyDomainChange(e.target.value)} placeholder="your-store.myshopify.com"
+                    <label htmlFor="settings-shopify-domain" className="sr-only">Shopify store domain</label>
+                    <input id="settings-shopify-domain" type="text" value={shopifyStoreDomain} onChange={e => handleShopifyDomainChange(e.target.value)} placeholder="your-store.myshopify.com" aria-invalid={Boolean(shopifyDomainError)} aria-describedby={shopifyDomainError ? 'settings-shopify-domain-error' : undefined}
                       className={`w-full bg-[#07070F] border rounded-xl px-4 py-3 text-sm text-[#F1F1F8] placeholder:text-[#3D3D55] font-mono focus:outline-none focus:border-[#C9747A]/50 transition-all ${shopifyDomainError ? 'border-[#EF4444]/50' : 'border-[#1E1E3A]'}`} />
-                    {shopifyDomainError && <p className="text-[10px] text-[#EF4444] mt-2 font-bold uppercase tracking-wider flex items-center gap-1"><AlertCircle size={10} /> {shopifyDomainError}</p>}
+                    {shopifyDomainError && <p id="settings-shopify-domain-error" role="alert" className="text-[10px] text-[#EF4444] mt-2 font-bold uppercase tracking-wider flex items-center gap-1"><AlertCircle size={10} /> {shopifyDomainError}</p>}
                   </div>
                 )}
 
@@ -795,57 +594,23 @@ export const SettingsView: React.FC = () => {
           </motion.div>
         )}
 
+        {activeTab === 'notifications' && (
+          <motion.section id="settings-panel-notifications" role="tabpanel" aria-labelledby="settings-tab-notifications" key="notifications" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rounded-[24px] border border-[#1E1E3A] bg-[#0F0F1E] p-6">
+            <div className="mb-3 flex items-center gap-3"><Bell size={20} className="text-[#D4A0A3]" aria-hidden="true" /><h3 className="text-[15px] font-bold text-[#F5EEF0]">Notifications</h3></div>
+            <p className="text-sm text-[#D1C6CB]">Notification preferences are not available yet. Notifications appear here only when the app receives them.</p>
+          </motion.section>
+        )}
+        {activeTab === 'preferences' && (
+          <motion.section id="settings-panel-preferences" role="tabpanel" aria-labelledby="settings-tab-preferences" key="preferences" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rounded-[24px] border border-[#1E1E3A] bg-[#0F0F1E] p-6">
+            <div className="mb-3 flex items-center gap-3"><SlidersHorizontal size={20} className="text-[#D4A0A3]" aria-hidden="true" /><h3 className="text-[15px] font-bold text-[#F5EEF0]">Preferences</h3></div>
+            <p className="text-sm text-[#D1C6CB]">Display and workspace preferences are not available yet.</p>
+          </motion.section>
+        )}
         {activeTab === 'billing' && (
-          <motion.div key="billing" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-            <section className="bg-gradient-to-br from-[#140F14] to-[#0F0F1E] border border-[#C9747A]/30 rounded-[24px] p-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#C9747A]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-              <div className="relative">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#C9747A] to-[#8B4A6B] flex items-center justify-center shadow-lg shadow-[#C9747A]/20"><Zap size={28} className="text-white" /></div>
-                  <div>
-                    <div className="flex items-center gap-3"><h3 className="text-xl font-black text-white">Enterprise Plan</h3><span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20">Active</span></div>
-                    <p className="text-sm text-[#6B6B88] mt-1">Unlimited AI operations & integrations</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="bg-[#080608]/50 rounded-xl p-4 border border-[#1E1E3A]/50"><p className="text-[10px] font-black text-[#6B6B88] uppercase tracking-widest mb-1">Renewal</p><p className="text-sm font-bold text-white">Jan 15, 2025</p></div>
-                  <div className="bg-[#080608]/50 rounded-xl p-4 border border-[#1E1E3A]/50"><p className="text-[10px] font-black text-[#6B6B88] uppercase tracking-widest mb-1">Amount</p><p className="text-sm font-bold text-white">$299/mo</p></div>
-                  <div className="bg-[#080608]/50 rounded-xl p-4 border border-[#1E1E3A]/50"><p className="text-[10px] font-black text-[#6B6B88] uppercase tracking-widest mb-1">Billing</p><p className="text-sm font-bold text-white">Monthly</p></div>
-                  <div className="bg-[#080608]/50 rounded-xl p-4 border border-[#1E1E3A]/50"><p className="text-[10px] font-black text-[#6B6B88] uppercase tracking-widest mb-1">Status</p><p className="text-sm font-bold text-[#10B981]">Paid</p></div>
-                </div>
-              </div>
-            </section>
-
-            <section className="bg-[#0F0F1E] border border-[#1E1E3A] rounded-[24px] p-6">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-[#8B4A6B]/10 flex items-center justify-center"><Activity size={24} className="text-[#8B4A6B]" /></div>
-                <div><h3 className="text-[15px] font-bold text-[#F5EEF0]">Usage This Month</h3><p className="text-[11px] text-[#6B5560]">December 2024</p></div>
-              </div>
-              <div className="space-y-6">
-                <UsageBar label="AI Tasks" used={847} total={1000} unit="tasks" color="linear-gradient(90deg, #C9747A, #8B4A6B)" />
-                <UsageBar label="Gemini API Calls" used={23450} total={50000} unit="calls" color="linear-gradient(90deg, #10B981, #059669)" />
-                <UsageBar label="Automations Run" used={156} total={500} unit="runs" color="linear-gradient(90deg, #3B82F6, #1D4ED8)" />
-                <UsageBar label="Data Sync (GB)" used={2.4} total={10} unit="GB" color="linear-gradient(90deg, #F59E0B, #D97706)" />
-              </div>
-              <div className="mt-6 pt-6 border-t border-[#1E1E3A]">
-                <button className="w-full py-3 rounded-xl text-xs font-black uppercase tracking-widest text-[#C9747A] border border-[#C9747A]/20 hover:bg-[#C9747A]/10 transition-all">Upgrade Plan for More Usage</button>
-              </div>
-            </section>
-
-            <section className="bg-[#0F0F1E] border border-[#1E1E3A] rounded-[24px] p-6">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-[#3B82F6]/10 flex items-center justify-center"><CreditCard size={24} className="text-[#3B82F6]" /></div>
-                <div><h3 className="text-[15px] font-bold text-[#F5EEF0]">Payment Method</h3><p className="text-[11px] text-[#6B5560]">Manage your billing information</p></div>
-              </div>
-              <div className="flex items-center justify-between p-4 bg-[#080608]/50 rounded-xl border border-[#1E1E3A]/50">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-8 bg-gradient-to-r from-[#1A1F71] to-[#0066B2] rounded flex items-center justify-center text-white text-xs font-bold">VISA</div>
-                  <div><p className="text-sm font-bold text-white">•••• •••• •••• 4242</p><p className="text-[10px] text-[#6B6B88]">Expires 12/26</p></div>
-                </div>
-                <button className="text-xs font-bold text-[#C9747A] hover:underline uppercase tracking-wider">Update</button>
-              </div>
-            </section>
-          </motion.div>
+          <motion.section id="settings-panel-billing" role="tabpanel" aria-labelledby="settings-tab-billing" key="billing" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rounded-[24px] border border-[#1E1E3A] bg-[#0F0F1E] p-6">
+            <div className="mb-3 flex items-center gap-3"><CreditCard size={20} className="text-[#D4A0A3]" aria-hidden="true" /><h3 className="text-[15px] font-bold text-[#F5EEF0]">Billing</h3></div>
+            <p className="text-sm text-[#D1C6CB]">Billing details are not available in this app yet.</p>
+          </motion.section>
         )}
       </AnimatePresence>
     </div>
