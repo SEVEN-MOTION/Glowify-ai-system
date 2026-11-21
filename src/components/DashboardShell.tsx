@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   BarChart2, Bell, Bot, ChevronDown, LayoutDashboard, LogOut, Megaphone,
-  Menu, Moon, Package, Settings, Store, Sun, Users, X, Zap,
+  Menu, Moon, Package, Pin, Settings, Store, Sun, Users, X, Zap,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
@@ -26,10 +26,11 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, active, on
     whileTap={{ scale: 0.99 }}
     onClick={onClick}
     aria-current={active ? 'page' : undefined}
+    title={label}
     className={`relative flex w-full items-center gap-3.5 rounded-xl px-4 py-3.5 text-left transition-colors group focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A0A3] ${active ? 'bg-gradient-to-r from-[#C9747A]/15 to-transparent text-white' : 'text-[#C2B4B9] hover:bg-white/5 hover:text-white'}`}
   >
     <Icon size={19} aria-hidden="true" className={active ? 'text-[#C9747A]' : 'group-hover:text-[#D4A0A3]'} />
-    <span className="text-[13px] font-bold tracking-tight">{label}</span>
+    <span className="glw-sidebar-text text-[13px] font-bold tracking-tight">{label}</span>
     {active && <span aria-hidden="true" className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-[#C9747A]" />}
   </motion.button>
 );
@@ -72,6 +73,7 @@ export const DashboardShell: React.FC<{
   const { theme, toggleTheme } = useTheme();
   const { notifications, markNotificationRead, clearNotifications } = useData();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [sidebarPinned, setSidebarPinned] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const store = getSavedStoreDetails(profile);
@@ -91,31 +93,27 @@ export const DashboardShell: React.FC<{
         <div className="absolute bottom-[-10%] right-[-10%] h-[30%] w-[30%] rounded-full bg-[#8B4A6B]/10 blur-[100px]" />
       </div>
 
-      {mobileNavOpen && <button type="button" aria-label="Close navigation menu" onClick={() => setMobileNavOpen(false)} className="fixed inset-0 z-30 bg-black/70 md:hidden" />}
+      {mobileNavOpen && <button type="button" aria-label="Close navigation menu" onClick={() => setMobileNavOpen(false)} className="fixed inset-x-0 bottom-0 top-[72px] z-30 bg-black/70 md:hidden" />}
 
-      <aside aria-label="Primary navigation" className={`fixed left-0 top-0 z-40 h-[100dvh] w-[min(280px,86vw)] flex-col border-r border-[#1E1E3A] bg-[#080608] transition-transform duration-200 motion-reduce:transition-none ${mobileNavOpen ? 'flex translate-x-0' : 'hidden md:flex md:translate-x-0'}`}>
-        <div className="flex items-center justify-between border-b border-[#1E1E3A] px-6 pb-5 pt-6">
-          <button type="button" onClick={() => navigate('overview')} aria-label="Glowify AI home" className="flex items-center gap-3 rounded-lg text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A0A3]">
-            <span className="flex h-[42px] w-[42px] items-center justify-center rounded-xl bg-gradient-to-br from-[#C9747A] to-[#8B4A6B]"><Zap size={22} className="fill-white text-white" aria-hidden="true" /></span>
-            <span><span className="block text-[18px] font-black tracking-[-0.03em] text-[#F5EEF0]">GLOWIFY<span className="text-[#C9747A]">AI</span></span><span className="block text-[8px] font-bold tracking-[0.2em] text-[#C2B4B9]">BEAUTY OS</span></span>
-          </button>
-          <button type="button" onClick={() => setMobileNavOpen(false)} aria-label="Close navigation" className="rounded-lg p-2 text-[#C2B4B9] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3] md:hidden"><X size={18} /></button>
-        </div>
+      <aside aria-label="Primary navigation" style={sidebarPinned ? { width: 280 } : undefined} className={`glw-sidebar fixed left-0 top-[72px] z-40 h-[calc(100dvh-72px)] w-[min(280px,86vw)] md:w-[76px] md:hover:w-[280px] md:focus-within:w-[280px] overflow-hidden flex-col border-r border-[#1E1E3A] bg-[#080608] transition-[width,transform] duration-200 motion-reduce:transition-none ${mobileNavOpen ? 'flex translate-x-0' : 'hidden md:flex md:translate-x-0'}`}>
+        <div className="hidden h-2 md:block" />
 
         <nav aria-label="Dashboard sections" className="flex-1 space-y-1 overflow-y-auto px-4 py-4">
-          <p className="mb-3 px-4 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#C2B4B9]">Navigation</p>
+          <p className="glw-sidebar-label mb-3 px-4 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#C2B4B9]">Navigation</p>
           {NAV_ITEMS.map(item => <SidebarItem key={item.id} {...item} active={activeTab === item.id} onClick={() => navigate(item.id)} />)}
         </nav>
 
         <div className="border-t border-[#1E1E3A] p-4">
           <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => navigate('settings')} />
+          <button type="button" onClick={() => setSidebarPinned(value => !value)} aria-label={sidebarPinned ? 'Unpin sidebar' : 'Pin expanded sidebar'} aria-pressed={sidebarPinned} title={sidebarPinned ? 'Unpin sidebar' : 'Pin expanded sidebar'} className="mt-2 flex min-h-10 w-full items-center gap-3 rounded-xl px-4 py-2.5 text-xs text-[#C2B4B9] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3]"><Pin size={17} aria-hidden="true" /><span className="glw-sidebar-text">{sidebarPinned ? 'Unpin sidebar' : 'Pin sidebar'}</span></button>
         </div>
       </aside>
 
-      <div className="flex min-h-screen flex-col md:ml-[280px]">
-        <header className="sticky top-0 z-20 flex min-h-[72px] items-center justify-between gap-2 border-b border-[#1E1E3A] bg-[#0a0a0b]/95 px-3 backdrop-blur-xl sm:px-5 lg:px-6">
+      <div className="flex min-h-screen flex-col pt-[72px] md:ml-[76px]">
+        <header className="fixed inset-x-0 top-0 z-50 flex min-h-[72px] items-center justify-between gap-2 border-b border-[#1E1E3A] bg-[#0a0a0b]/95 px-3 backdrop-blur-xl sm:px-5 lg:px-6">
           <div className="flex min-w-0 items-center gap-2 sm:gap-4">
             <button type="button" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation menu" aria-expanded={mobileNavOpen} className="rounded-lg p-2 text-[#F1F1F8] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3] md:hidden"><Menu size={20} /></button>
+            <button type="button" onClick={() => navigate('overview')} aria-label="Glowify AI home" className="flex shrink-0 items-center gap-2 rounded-lg text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3]"><img src="/glowify-mark.svg" alt="" className="h-9 w-9" /><span className="hidden text-sm font-black tracking-tight text-[#F5EEF0] sm:inline">GLOWIFY<span className="text-[#C9747A]"> AI</span></span></button>
             <StoreSummary store={store} onOpenSettings={() => navigate('settings')} />
             <span className="hidden rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold text-amber-200 sm:inline-flex">Sample data</span>
           </div>
