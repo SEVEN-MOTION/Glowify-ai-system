@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f6f5f7">
+<link rel="icon" type="image/svg+xml" href="/glowify-mark.svg">
+<title>Glowify AI — Overview preview</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light;--bg:#f6f5f7;--surface:#fff;--ink:#2c2730;--muted:#706873;--line:#e5e0e6;--rose:#b96e78;--rose-dark:#874e59;--rose-bg:#f7ecee;--amber:#785817;--amber-bg:#faf4e8;--green:#286b4d;--shadow:0 5px 22px #2c27300a}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0a0a0b;--surface:#100d10;--ink:#f5eef0;--muted:#bca8ae;--line:#30262b;--rose:#d4a0a3;--rose-dark:#f3cbd0;--rose-bg:#26171e;--amber:#f0cf88;--amber-bg:#281f12;--green:#82c79d;--shadow:none}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-size:13px;line-height:1.5}button{font:inherit;color:inherit;cursor:pointer}
+.topbar{height:68px;position:fixed;z-index:5;inset:0 0 auto;display:flex;align-items:center;gap:20px;padding:0 22px;background:var(--surface);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;min-width:182px}.brand img{width:36px;height:36px}.brand strong{font-size:15px;letter-spacing:-.04em}
+.store{display:flex;align-items:center;gap:9px;padding-left:18px;border-left:1px solid var(--line);min-width:0}.store-icon{width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--line);border-radius:9px;color:var(--muted)}.store-copy{min-width:0}.eyebrow{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}.store-copy strong{display:block;font-size:11px}.chip{border:1px solid #eadfc5;border-radius:99px;padding:4px 9px;background:var(--amber-bg);color:var(--amber);font-size:10px;font-weight:700;white-space:nowrap}
+.actions{display:flex;align-items:center;gap:7px;margin-left:auto}.icon{width:35px;height:35px;border:1px solid var(--line);border-radius:9px;background:var(--surface);display:grid;place-items:center}.avatar{width:34px;height:34px;border-radius:50%;background:var(--rose-bg);color:var(--rose-dark);display:grid;place-items:center;font-size:11px;font-weight:700}
+.sidebar{position:fixed;z-index:4;top:68px;bottom:0;left:0;width:72px;overflow:hidden;background:var(--surface);border-right:1px solid var(--line);transition:width .18s ease}.sidebar:hover,.sidebar:focus-within{width:232px;box-shadow:10px 10px 24px #24202410}.nav{padding:16px 10px}.nav-label{padding:4px 9px 8px;color:var(--muted);font-size:9px;letter-spacing:.13em;text-transform:uppercase;white-space:nowrap;opacity:0}.sidebar:hover .nav-label,.sidebar:focus-within .nav-label{opacity:1}.nav button{display:flex;align-items:center;gap:13px;width:100%;height:40px;margin:3px 0;padding:0 14px;border:0;border-radius:9px;background:transparent;color:var(--muted);white-space:nowrap;text-align:left}.nav button:hover,.nav button[aria-current=page]{background:var(--rose-bg);color:var(--rose-dark)}.nav button span{opacity:0}.sidebar:hover .nav button span,.sidebar:focus-within .nav button span{opacity:1}.side-foot{position:absolute;bottom:12px;left:10px;right:10px;border-top:1px solid var(--line);padding-top:10px}.side-foot button{height:38px;width:100%;text-align:left;padding:0 14px;border:0;border-radius:9px;background:transparent;white-space:nowrap;color:var(--muted)}.side-foot button span{opacity:0}.sidebar:hover .side-foot button span,.sidebar:focus-within .side-foot button span{opacity:1}
+main{margin:68px 0 0 72px;padding:25px 28px 42px;max-width:1600px}.notice{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1px solid #eadfc5;border-radius:10px;background:var(--amber-bg);color:var(--amber);font-size:11px;margin-bottom:22px}.head{display:flex;align-items:end;justify-content:space-between;gap:15px;margin-bottom:18px}.head h1{font-size:24px;line-height:1.2;letter-spacing:-.04em;margin:3px 0 4px}.head p{margin:0;color:var(--muted)}.period{border:1px solid var(--line);background:var(--surface);padding:8px 11px;border-radius:9px;color:var(--muted);font-size:11px;white-space:nowrap}
+.connection{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 16px;border:1px solid #eadfc5;border-radius:12px;background:var(--amber-bg);margin-bottom:17px}.connection strong{display:block;font-size:12px}.connection p{margin:3px 0 0;color:var(--muted);font-size:11px}.button{border:1px solid #e6cbd0;background:var(--surface);border-radius:8px;padding:8px 11px;color:var(--rose-dark);font-size:11px;font-weight:700;white-space:nowrap}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric,.panel{border:1px solid var(--line);background:var(--surface);border-radius:12px;box-shadow:var(--shadow)}.metric{padding:15px 16px}.metric-head{display:flex;justify-content:space-between;color:var(--muted);font-size:11px}.metric-value{font-size:24px;letter-spacing:-.04em;font-weight:700;margin:10px 0 3px}.metric-note{color:var(--muted);font-size:10px}.positive{color:var(--green);font-weight:700}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(285px,.9fr);gap:13px;margin-top:13px}.panel-head{display:flex;justify-content:space-between;gap:10px;padding:15px 17px;border-bottom:1px solid var(--line)}.panel-head strong{font-size:12px}.panel-head p{margin:2px 0 0;font-size:10px;color:var(--muted)}.panel-body{padding:15px 17px}.chart{height:185px;width:100%;overflow:hidden}.chart svg{width:100%;height:100%}.card-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 0;border-bottom:1px solid var(--line)}.card-row:last-child{border-bottom:0}.label{font-size:11px;font-weight:700}.detail{font-size:10px;color:var(--muted)}.status{padding:4px 8px;border-radius:99px;background:var(--amber-bg);color:var(--amber);font-size:9px;font-weight:700;white-space:nowrap}.activity{display:grid;grid-template-columns:1fr auto;gap:3px;padding:10px 0;border-bottom:1px solid var(--line)}.activity:last-child{border:0}.action{border-left:3px solid var(--rose);padding:9px 11px;background:var(--bg);border-radius:0 8px 8px 0;font-size:11px}.action p{color:var(--muted);margin:4px 0}.source{display:block;color:var(--muted);font-size:9px;margin-top:7px}
+@media(max-width:900px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:1fr}main{padding:20px}.topbar{gap:12px}.brand{min-width:auto}.store{padding-left:12px}}
+@media(max-width:600px){.topbar{height:60px;padding:0 11px;gap:9px}.brand img{width:32px;height:32px}.brand strong{font-size:13px}.store{display:none}.chip{display:none}.sidebar{top:60px;width:0;transform:translateX(-100%)}.sidebar.is-open{width:240px;transform:none;box-shadow:10px 12px 28px #24202430}.sidebar.is-open .nav-label,.sidebar.is-open .nav button span,.sidebar.is-open .side-foot button span{opacity:1}main{margin:60px 0 0;padding:17px 13px 30px}.head{align-items:start;flex-direction:column}.head h1{font-size:22px}.connection{align-items:flex-start;flex-direction:column}.metrics{gap:8px}.metric{padding:12px}.metric-value{font-size:19px}.metric-note{font-size:9px}.actions .avatar{display:none}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon mobile-menu" aria-label="Open navigation" onclick="toggleMenu()" style="display:none">☰</button>
+  <div class="brand"><img src="/glowify-mark.svg" alt=""><strong>GLOWIFY AI</strong></div>
+  <div class="store"><span class="store-icon">▧</span><div class="store-copy"><span class="eyebrow">Store</span><strong>No store connected</strong></div></div>
+  <span class="chip">Preview data</span>
+  <div class="actions"><button class="icon" aria-label="Toggle color theme" onclick="toggleTheme()">◐</button><button class="icon" aria-label="Notifications">♧</button><span class="avatar" aria-label="Account">N</span></div>
+</header>
+<aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+  <nav class="nav" aria-label="Dashboard sections">
+    <div class="nav-label">Workspace</div>
+    <button aria-current="page"><b>▦</b><span>Overview</span></button>
+    <button><b>✦</b><span>AI workspace</span></button>
+    <button><b>⌁</b><span>Analytics</span></button>
+    <button><b>◷</b><span>Activity</span></button>
+    <div class="nav-label" style="margin-top:16px">Manage</div>
+    <button><b>▤</b><span>Marketing</span></button>
+    <button><b>□</b><span>Inventory</span></button>
+    <button><b>♙</b><span>Customers</span></button>
+    <button><b>⚙</b><span>Automations</span></button>
+  </nav>
+  <div class="side-foot"><button><b>⚙</b> <span>Settings</span></button></div>
+</aside>
+<main>
+  <div class="notice"><strong>Preview only.</strong><span>All figures and activity below are illustrative sample data. This screen does not represent a connected Shopify store.</span></div>
+  <section class="head"><div><div class="eyebrow">Command center</div><h1>Store performance</h1><p>A clear view of sales, store health, and the next useful action.</p></div><div class="period">Example period · Last 30 days</div></section>
+  <section class="connection"><div><strong>Shopify store not connected</strong><p>Connect when you're ready. The preview works without connecting a store.</p></div><button class="button" disabled>Connect Shopify from Settings</button></section>
+  <section class="metrics" aria-label="Illustrative performance snapshot">
+    <article class="metric"><div class="metric-head"><span>Gross sales</span><span>↗</span></div><div class="metric-value">US$48,250</div><div class="metric-note"><span class="positive">+12.4%</span> vs previous period · sample</div></article>
+    <article class="metric"><div class="metric-head"><span>Orders</span><span>▣</span></div><div class="metric-value">1,284</div><div class="metric-note"><span class="positive">+8.1%</span> vs previous period · sample</div></article>
+    <article class="metric"><div class="metric-head"><span>Average order value</span><span>◈</span></div><div class="metric-value">US$37.58</div><div class="metric-note"><span class="positive">+3.7%</span> vs previous period · sample</div></article>
+    <article class="metric"><div class="metric-head"><span>Returning customers</span><span>♙</span></div><div class="metric-value">32%</div><div class="metric-note"><span class="positive">+2.2 pts</span> vs previous period · sample</div></article>
+  </section>
+  <div class="grid">
+    <section class="panel"><div class="panel-head"><div><strong>Sales trend</strong><p>Example daily totals · not connected data</p></div><span class="status">Sample chart</span></div><div class="panel-body"><div class="chart" role="img" aria-label="Illustrative sample sales chart">
+      <svg viewBox="0 0 700 190" preserveAspectRatio="none"><path d="M35 150 L160 118 L275 135 L390 85 L505 100 L660 42 L660 175 L35 175 Z" fill="#b96e7820"/><path d="M35 150 L160 118 L275 135 L390 85 L505 100 L660 42" fill="none" stroke="#b96e78" stroke-width="3"/><path d="M35 175H660M35 135H660M35 95H660M35 55H660" stroke="#e5e0e6" stroke-dasharray="3 5" fill="none"/><g fill="#706873" font-size="10"><text x="35" y="188">1 Nov</text><text x="165" y="188">6 Nov</text><text x="280" y="188">11 Nov</text><text x="395" y="188">16 Nov</text><text x="510" y="188">21 Nov</text><text x="625" y="188">26 Nov</text></g></svg>
+    </div><span class="source">Example data only · source and period labels stay visible with live data.</span></div></section>
+    <section class="panel"><div class="panel-head"><div><strong>Store setup</strong><p>Connection status and next step</p></div></div><div class="panel-body">
+      <div class="card-row"><div><div class="label">Shopify</div><div class="detail">No store details saved</div></div><span class="status">Not connected</span></div>
+      <div class="card-row"><div><div class="label">Klaviyo</div><div class="detail">Connection not configured</div></div><span class="status">Not connected</span></div>
+      <div class="card-row"><div><div class="label">AI assistant</div><div class="detail">Status shown in Settings</div></div><span class="status">Check setup</span></div>
+      <span class="source">A saved credential alone does not confirm a healthy integration.</span>
+    </div></section>
+  </div>
+  <div class="grid">
+    <section class="panel"><div class="panel-head"><div><strong>Recent activity</strong><p>Example events · not a live feed</p></div><span class="status">Sample</span></div><div class="panel-body">
+      <div class="activity"><div><div class="label">Order received</div><div class="detail">Hydrating serum · sample event</div></div><div class="detail">10:42 AM</div></div>
+      <div class="activity"><div><div class="label">Stock review needed</div><div class="detail">Vitamin C serum · sample alert</div></div><div class="detail">9:18 AM</div></div>
+      <div class="activity"><div><div class="label">Campaign summary ready</div><div class="detail">Welcome series · sample event</div></div><div class="detail">Yesterday</div></div>
+    </div></section>
+    <section class="panel"><div class="panel-head"><div><strong>Suggested review</strong><p>Example AI suggestion · preview only</p></div><span class="status">Not runnable</span></div><div class="panel-body">
+      <div class="action"><strong>Review low-stock products</strong><p>Example: check items with less than two weeks of stock before the next campaign.</p><span class="detail">Signal: sample inventory list · no action will run</span></div>
+      <span class="source">Approval and execution stay unavailable until a store and supported action flow are connected.</span>
+    </div></section>
+  </div>
+  <div class="source" style="text-align:center;margin-top:20px">Glowify AI · illustrative interface preview</div>
+</main>
+<script>
+function toggleTheme(){var root=document.documentElement;var next=root.dataset.theme==="dark"?"light":"dark";root.dataset.theme=next;localStorage.setItem("glowify.theme",next);document.querySelector('meta[name="theme-color"]').content=next==="light"?"#f6f5f7":"#0a0a0b"}
+function toggleMenu(){document.getElementById("sidebar").classList.toggle("is-open")}
+</script>
+</body>
+</html>
