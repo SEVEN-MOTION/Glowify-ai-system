@@ -1,7 +1,7 @@
 // src/App.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Bell, Zap, Package, Menu, X, ChevronRight, Activity, LogOut, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { OverviewView, AnalyticsView } from './components/DashboardViews';
 import { AIAgentsView } from './components/views/AIAgentsView';
 import { MarketingView } from './components/views/MarketingView';
@@ -157,6 +157,31 @@ const SignOutOverlay: React.FC<{ onComplete: () => void }> = ({ onComplete }) =>
   );
 };
 
+class ViewErrorBoundary extends React.Component<{ children: React.ReactNode; onRetry: () => void }, { hasError: boolean }> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('Dashboard view failed to render:', error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <section role="alert" className="rounded-2xl border border-red-300/30 bg-red-950/20 p-6 text-[#F5EEF0]">
+          <h2 className="text-lg font-bold">This page could not be displayed</h2>
+          <p className="mt-2 text-sm text-[#D1C6CB]">The rest of Glowify is still available. Return to the dashboard and try again.</p>
+          <button type="button" onClick={this.props.onRetry} className="mt-4 rounded-lg bg-[#C9747A] px-4 py-2 text-sm font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Return to dashboard</button>
+        </section>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 
 
 // ─── App Shell ──────────────────────────────────────────────────────────────
@@ -203,19 +228,23 @@ const AppShell: React.FC = () => {
 
   return (
     <DashboardShell activeTab={activeTab} setActiveTab={setActiveTab}>
-      {renderView()}
+      <ViewErrorBoundary key={activeTab} onRetry={() => setActiveTab('overview')}>
+        {renderView()}
+      </ViewErrorBoundary>
     </DashboardShell>
   );
 };
 
 export default function App() {
   return (
-    <AuthProvider>
-      <DashboardProvider>
-        <DataProvider>
-          <AppShell />
-        </DataProvider>
-      </DashboardProvider>
-    </AuthProvider>
+    <MotionConfig reducedMotion="user">
+      <AuthProvider>
+        <DashboardProvider>
+          <DataProvider>
+            <AppShell />
+          </DataProvider>
+        </DashboardProvider>
+      </AuthProvider>
+    </MotionConfig>
   );
 }
