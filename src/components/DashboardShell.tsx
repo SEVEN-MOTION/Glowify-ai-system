@@ -131,7 +131,7 @@ export const DashboardShell: React.FC<{
             >
               {theme === 'dark' ? <Sun size={19} aria-hidden="true" /> : <Moon size={19} aria-hidden="true" />}
             </button>
-            <button type="button" onClick={() => setNotificationsOpen(true) aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`} aria-expanded={notificationsOpen} className="relative rounded-xl p-2.5 text-[#D1C6CB] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3]">
+            <button type="button" onClick={() => setNotificationsOpen(true)} aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`} aria-expanded={notificationsOpen} className="relative rounded-xl p-2.5 text-[#D1C6CB] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3]">
               <Bell size={19} aria-hidden="true" />
               {unreadCount > 0 && <span aria-hidden="true" className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C9747A] px-1 text-[10px] font-bold text-white">{unreadCount}</span>}
             </button>
