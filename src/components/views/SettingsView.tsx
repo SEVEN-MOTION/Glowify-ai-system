@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 11147)
-Total output lines: 723
-
 // src/components/views/SettingsView.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -413,7 +410,115 @@ export const SettingsView: React.FC = () => {
         throw new Error(message);
       }
     } catch (error: unknown) {
-     …1147 tokens truncated…="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save integrations';
+      console.error('Save error:', error);
+      // Fall back to direct Firestore write
+      try {
+        await setDoc(doc(db, 'users', user.uid), {
+          shopifyApiKey,
+          shopifyStoreDomain,
+          klaviyoApiKey,
+          geminiApiKey,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+        await refreshProfile();
+        setOriginalValues(prev => ({
+          ...prev,
+          shopifyApiKey,
+          shopifyStoreDomain,
+          klaviyoApiKey,
+          geminiApiKey
+        }));
+        setToast({ message: 'Integrations saved successfully', type: 'success' });
+      } catch (dbError) {
+        console.error('Firestore save error:', dbError);
+        setToast({ message: errorMessage, type: 'error' });
+        setSavingKeys(false);
+        return;
+      }
+    }
+
+    setSavingKeys(false);
+  };
+
+  const handleTestConnection = async (type: 'shopify' | 'klaviyo' | 'gemini') => {
+    const hasConfiguration = type === 'shopify' ? Boolean(shopifyApiKey || shopifyStoreDomain)
+      : type === 'klaviyo' ? Boolean(klaviyoApiKey) : Boolean(geminiApiKey);
+    setTestingConnections(prev => ({ ...prev, [type]: true }));
+    setConnectionStatus(prev => ({ ...prev, [type]: 'checking' }));
+    
+    try {
+      // Determine which test type to send to the API
+      let testType: 'shopify' | 'klaviyo' | 'gemini' | 'shopify_domain' = type;
+      if (type === 'shopify' && !shopifyApiKey && shopifyStoreDomain) {
+        testType = 'shopify_domain';
+      }
+
+      // Call the secure test connection API endpoint
+      const response = await fetch('/api/settings/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid: user?.uid,
+          type: testType,
+          shopifyApiKey,
+          shopifyStoreDomain,
+          klaviyoApiKey,
+          geminiApiKey
+        })
+      });
+
+      if (response.ok) {
+        const result: unknown = await response.json().catch(() => null);
+        const isSuccess = result !== null && typeof result === 'object' && 'success' in result && result.success === true;
+        const resultMessage = result !== null && typeof result === 'object' && 'message' in result && typeof result.message === 'string'
+          ? result.message
+          : undefined;
+
+        if (isSuccess) {
+          // A successful response from the existing verifier confirms the connection.
+          setConnectionStatus(prev => ({ ...prev, [type]: 'verified' }));
+          setToast({ 
+            message: `${type.charAt(0).toUpperCase() + type.slice(1)} connection verified!`, 
+            type: 'success' 
+          });
+        } else {
+          // The verifier explicitly rejected the connection.
+          setConnectionStatus(prev => ({ ...prev, [type]: 'failed' }));
+          setToast({ 
+            message: resultMessage || `${type.charAt(0).toUpperCase() + type.slice(1)} connection failed`,
+            type: 'error' 
+          });
+        }
+      } else {
+        setConnectionStatus(prev => ({ ...prev, [type]: hasConfiguration ? 'configured' : 'not_configured' }));
+        setToast({ message: 'The connection could not be verified. Please try again later.', type: 'error' });
+      }
+    } catch {
+      setConnectionStatus(prev => ({ ...prev, [type]: hasConfiguration ? 'configured' : 'not_configured' }));
+      setToast({ message: 'The connection could not be verified. Please try again later.', type: 'error' });
+    } finally {
+      setTestingConnections(prev => ({ ...prev, [type]: false }));
+    }
+  };
+
+  const isSaveDisabled = Boolean(shopifyStoreDomain && !SHOPIFY_DOMAIN_REGEX.test(shopifyStoreDomain)) || savingKeys;
+
+  const tabs = [
+    { id: 'profile' as TabId, label: 'Account', icon: <User size={16} /> },
+    { id: 'integrations' as TabId, label: 'Integrations', icon: <Plug size={16} /> },
+    { id: 'notifications' as TabId, label: 'Notifications', icon: <Bell size={16} /> },
+    { id: 'preferences' as TabId, label: 'Preferences', icon: <SlidersHorizontal size={16} /> },
+    { id: 'billing' as TabId, label: 'Billing', icon: <CreditCard size={16} /> },
+  ];
+  const profileStore = getSavedStoreDetails(profile);
+
+  return (
+    <div className="space-y-6">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {showUnsavedDialog && <UnsavedDialog onSave={handleSaveAndSwitch} onDiscard={handleDiscardAndSwitch} onCancel={handleCancelDialog} />}
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div><h2 className="text-2xl font-black text-white">Settings</h2><p className="text-sm text-[#6B6B88] mt-1">Manage your Glowify AI account</p></div>
         <div role="tablist" aria-label="Settings sections" className="flex flex-wrap items-center gap-1 bg-[#0F0F1E] p-1 rounded-2xl border border-[#1E1E3A]">
           {tabs.map(tab => (
