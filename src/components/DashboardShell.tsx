@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   BarChart2, Bell, Bot, ChevronDown, LayoutDashboard, LogOut, Megaphone,
-  Menu, Moon, Package, Settings, Store, Sun, Users, X, Zap,
+  Menu, Moon, Package, Pin, Settings, Store, Sun, Users, X, Zap,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
@@ -26,10 +26,11 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, active, on
     whileTap={{ scale: 0.99 }}
     onClick={onClick}
     aria-current={active ? 'page' : undefined}
+    title={label}
     className={`relative flex w-full items-center gap-3.5 rounded-xl px-4 py-3.5 text-left transition-colors group focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A0A3] ${active ? 'bg-gradient-to-r from-[#C9747A]/15 to-transparent text-white' : 'text-[#C2B4B9] hover:bg-white/5 hover:text-white'}`}
   >
     <Icon size={19} aria-hidden="true" className={active ? 'text-[#C9747A]' : 'group-hover:text-[#D4A0A3]'} />
-    <span className="text-[13px] font-bold tracking-tight">{label}</span>
+    <span className="glw-sidebar-text text-[13px] font-bold tracking-tight">{label}</span>
     {active && <span aria-hidden="true" className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-[#C9747A]" />}
   </motion.button>
 );
@@ -72,6 +73,7 @@ export const DashboardShell: React.FC<{
   const { theme, toggleTheme } = useTheme();
   const { notifications, markNotificationRead, clearNotifications } = useData();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [sidebarPinned, setSidebarPinned] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const store = getSavedStoreDetails(profile);
@@ -93,16 +95,17 @@ export const DashboardShell: React.FC<{
 
       {mobileNavOpen && <button type="button" aria-label="Close navigation menu" onClick={() => setMobileNavOpen(false)} className="fixed inset-x-0 bottom-0 top-[72px] z-30 bg-black/70 md:hidden" />}
 
-      <aside aria-label="Primary navigation" className={`fixed left-0 top-[72px] z-40 h-[calc(100dvh-72px)] w-[min(280px,86vw)] md:w-[76px] md:hover:w-[280px] md:focus-within:w-[280px] overflow-hidden flex-col border-r border-[#1E1E3A] bg-[#080608] transition-[width,transform] duration-200 motion-reduce:transition-none ${mobileNavOpen ? 'flex translate-x-0' : 'hidden md:flex md:translate-x-0'}`}>
+      <aside aria-label="Primary navigation" style={sidebarPinned ? { width: 280 } : undefined} className={`glw-sidebar fixed left-0 top-[72px] z-40 h-[calc(100dvh-72px)] w-[min(280px,86vw)] md:w-[76px] md:hover:w-[280px] md:focus-within:w-[280px] overflow-hidden flex-col border-r border-[#1E1E3A] bg-[#080608] transition-[width,transform] duration-200 motion-reduce:transition-none ${mobileNavOpen ? 'flex translate-x-0' : 'hidden md:flex md:translate-x-0'}`}>
         <div className="hidden h-2 md:block" />
 
         <nav aria-label="Dashboard sections" className="flex-1 space-y-1 overflow-y-auto px-4 py-4">
-          <p className="mb-3 px-4 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#C2B4B9]">Navigation</p>
+          <p className="glw-sidebar-label mb-3 px-4 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#C2B4B9]">Navigation</p>
           {NAV_ITEMS.map(item => <SidebarItem key={item.id} {...item} active={activeTab === item.id} onClick={() => navigate(item.id)} />)}
         </nav>
 
         <div className="border-t border-[#1E1E3A] p-4">
           <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => navigate('settings')} />
+          <button type="button" onClick={() => setSidebarPinned(value => !value)} aria-label={sidebarPinned ? 'Unpin sidebar' : 'Pin expanded sidebar'} aria-pressed={sidebarPinned} title={sidebarPinned ? 'Unpin sidebar' : 'Pin expanded sidebar'} className="mt-2 flex min-h-10 w-full items-center gap-3 rounded-xl px-4 py-2.5 text-xs text-[#C2B4B9] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A0A3]"><Pin size={17} aria-hidden="true" /><span className="glw-sidebar-text">{sidebarPinned ? 'Unpin sidebar' : 'Pin sidebar'}</span></button>
         </div>
       </aside>
 
